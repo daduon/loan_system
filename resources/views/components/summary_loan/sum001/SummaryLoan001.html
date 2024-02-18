@@ -1,0 +1,131 @@
+<!-- <div class="row">
+    <div class="col-lg-12 mt-3 mb-3 text-end">
+        <button type="button" class="btn btn-primary px-4">Create</button>
+    </div>
+</div> -->
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Summary Loan</h5>
+                <div class="row">
+                    <div class="col-md-4 mt-2">
+                        <label class="form-label">Customer</label>
+                        <select
+                            class="form-select"
+                            v-model="customer_selected"
+                            @change="GetBorrowId()"
+                        >
+                            <option selected value="">Select a Customer</option>
+                            <option
+                                v-for="(item,index) in customer"
+                                :key="index"
+                                :value="item.id"
+                            >
+                                {{item.id}} - {{item.customer_name}}
+                            </option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 mt-2">
+                        <label class="form-label">Borrow ID</label>
+                        <select class="form-select" v-model="borrowId_selected">
+                            <option selected value="">
+                                Select a Borrow ID
+                            </option>
+                            <option
+                                v-for="(item,index) in borrowId"
+                                :key="index"
+                                :value="item.id"
+                            >
+                                {{item.id}}
+                            </option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 mt-2">
+                        <label class="form-label">Summary Type</label>
+                        <select class="form-select" v-model="type_selected">
+                            <option selected value="all">All</option>
+                            <option value="paid">Paid</option>
+                            <option value="unpaid">Unpaid</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12 mt-3">
+                        <button
+                            class="btn btn-primary w-100"
+                            @click="GetSummary()"
+                        >
+                            Search
+                        </button>
+                    </div>
+                </div>
+                <hr />
+                <div style="overflow-x: auto">
+                    <table id="loanSummaryTbl" class="table">
+                        <thead>
+                            <tr>
+                                <th scope="col">No</th>
+                                <th scope="col">Loan ID</th>
+                                <th scope="col">Repay Principle Amount</th>
+                                <th scope="col">Repay Interest Amount</th>
+                                <th scope="col">Tax Amount</th>
+                                <th scope="col">Total Pay Amount</th>
+                                <th scope="col">From Date</th>
+                                <th scope="col">To Date</th>
+                                <th scope="col">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="(item,index) in summary" :key="index">
+                                <th>{{index + 1}}</th>
+                                <th>{{item.id}}</th>
+                                <td>{{item.repayprincipal}} $</td>
+                                <td>{{item.repayinterest}} $</td>
+                                <td>{{item.taxamount}} $</td>
+                                <td>{{item.totalpay}} $</td>
+                                <td>{{FomartDate(item.paymentfromdate)}}</td>
+                                <td>{{FomartDate(item.paymenttodate)}}</td>
+                                <td>
+                                    {{item.schedulestatuscode === 1 ? "Paid" :
+                                    "Unpaid"}}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" tabindex="-1" id="loanSummaryModal">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Loan Summary</h5>
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal"
+                    aria-label="Close"
+                ></button>
+            </div>
+            <div class="modal-body">
+                <p>Modal body text goes here.</p>
+            </div>
+            <div class="modal-footer">
+                <!-- <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary">Save changes</button> -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<transition name="fade">
+    <div class="loader-container" v-if="loading">
+        <div class="spinner-border text-primary" role="status">
+            <span class="sr-only"></span>
+        </div>
+    </div>
+</transition>

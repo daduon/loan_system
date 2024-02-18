@@ -1,0 +1,46 @@
+<aside id="sidebar" class="sidebar">
+    <ul class="sidebar-nav" id="sidebar-nav">
+        <li class="nav-item">
+            <router-link class="nav-link" :class="$route.path === '/home' ? '' : 'collapsed'" to="/home">
+                <i class="bi bi-grid"></i>
+                <span>Home</span>
+            </router-link>
+        </li>
+        <li class="nav-item">
+            <router-link class="nav-link" :class="$route.path === '/customer-type' ? '' : 'collapsed'" to="/customer-type">
+                <i class="bi bi-person"></i>
+                <span>Customer Type</span>
+            </router-link>
+        </li>
+        <li class="nav-item">
+            <router-link class="nav-link" :class="$route.path === '/customer' ? '' : 'collapsed'" to="/customer">
+                <i class="bi bi-person"></i>
+                <span>Customers</span>
+            </router-link>
+        </li>
+        <li class="nav-item">
+            <router-link class="nav-link" :class="$route.path === '/coemployee' ? '' : 'collapsed'" to="/coemployee">
+                <i class="bi bi-person"></i>
+                <span>Co Employees</span>
+            </router-link>
+        </li>
+        <li class="nav-item">
+            <router-link class="nav-link" :class="$route.path === '/loan' ? '' : 'collapsed'" to="/loan">
+                <i class="bi bi-bank"></i>
+                <span>Loan</span>
+            </router-link>
+        </li>
+        <li class="nav-item">
+            <router-link class="nav-link" :class="$route.path === '/summary-loan' ? '' : 'collapsed'" to="/summary-loan">
+                <i class="bi bi-card-list"></i>
+                <span>Summary Loan</span>
+            </router-link>
+        </li>
+        <li class="nav-item">
+            <router-link class="nav-link" :class="$route.path === '/holiday-date' ? '' : 'collapsed'" to="/holiday-date">
+                <i class="bi bi-calendar-date-fill"></i>
+                <span>Holiday Date</span>
+            </router-link>
+        </li>
+    </ul>
+</aside>

@@ -1,0 +1,51 @@
+
+<div class="row">
+      <div class="col-lg-12 mt-3 mb-3 text-start">
+            <button type="button" class="btn btn-primary px-4"   @click="back">Back</button>
+</div>
+</div>
+<div class="row">
+      <div class="col-lg-12">
+            <div class="card">
+                  <div class="card-body">
+                        <h5 class="card-title">Loan Schedules</h5>
+                        <table class="table datatable">
+                              <thead>
+                                    <tr>
+                                          <th scope="col">Borrowing id</th>
+                                          <th scope="col">Customer Name</th>
+                                          <th scope="col">Payment Date</th>
+                                          <th scope="col">Transaction Principal</th>
+                                          <th scope="col">Interest Amount</th>
+                                          <th scope="col">Tax Amount</th>
+                                          <th scope="col">Payment Amount</th>
+                                          <th scope="col">Paid Status</th>
+                                    </tr>
+                              </thead>
+                              <tbody >
+                                    <tr  v-for="(item, index) in borrowerScheduleList" :key="index"  >
+                                          <th scope="row">{{ item.scheduleseqno }}</th>
+                                          <td>{{ item.customername }}</td>
+                                          <td>{{ item.paymentapplydate }}</td>
+                                          <td>{{ item.transactionprincipal }}</td>
+                                          <td>{{ item.transactioninterestamount }}</td>
+                                          <td>{{ item.taxamount }}</td>
+                                          <td>{{ item.repayprincipal }}</td>
+                                          <td v-if="item.schedulestatuscode ===1" ><div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="flexSwitchCheckChecked" checked disabled>
+                                              </div>
+                                          </td>
+                                          <td v-else ><div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="flexSwitchCheckChecked"   v-on:click="update(item.borrowid)">
+                                              </div>
+                                          </td>
+                                          <!-- <button v-if="item.schedulestatuscode ===0" type="button" class="btn btn-danger px-4"  >N</button>
+                                          <button v-else type="button" class="btn btn-primary px-4"  disabled >Y</button> -->
+                                    </tr>
+                                   
+                              </tbody>
+                        </table>
+                  </div>
+            </div>
+      </div>
+</div>

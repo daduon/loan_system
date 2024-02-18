@@ -1,0 +1,75 @@
+<Loading :loading="isLoading" ></Loading>
+<div class="pagetitle">
+      <h1>Dashboard</h1>
+      <nav class="mt-3">
+            <ol class="breadcrumb">
+                  <li class="breadcrumb-item">
+                        <router-link to="/home">Home</router-link>
+                  </li>
+                  <li class="breadcrumb-item">
+                        <a>Co Employee</a>
+                  </li>
+            </ol>
+      </nav>
+</div>
+
+<div class="row">
+      <div class="col-lg-12 mb-3 text-end">
+            <button type="button" class="btn btn-primary px-4" @click="register">
+                  <i class="bi bi-plus-circle"></i> Create
+            </button>
+      </div>
+</div>
+<!-- <div class="row">
+      <div class="col-lg-12">
+            <div class="card">
+                  <div class="card-body px-4">
+                        <div class="row">
+                              <div class="col-md-6 px-4">
+                                    <label class="form-label">Customer Name</label>
+                                    <input type="text" v-model="search" class="form-control" :placeholder="`Search by ${searchBy !== '' ? searchBy : 'name'}`">
+                              </div>
+                        </div>
+                  </div>
+            </div>
+      </div>
+</div> -->
+
+<div class="row">
+      <div class="col-lg-12">
+            <div class="card">
+                  <div class="card-body">
+                        <h5 class="card-title">CO Employee List</h5>
+                        <div class="search my-2" style="width: 250px">
+                              <input type="text" v-model="search" class="form-control" :placeholder="`Search by ${searchBy !== '' ? searchBy : 'name'}`">
+                        </div>
+                        <table class="table" id="coEmployeeList" style="width: 100%">
+                              <thead>
+                                    <tr>
+                                          <th scope="col" v-for="(item, index) in headers" :key="index">{{ item.label }}</th>
+                                    </tr>
+                              </thead>
+                              <tbody>
+                                    <tr v-for="(item, index) in dataGrid.slice(pageStart, pageStart + countOfPage)" :key="index">
+                                          <th scope="row">{{ (currPage - 1) * countOfPage + index + 1 }}</th>
+                                          <td>{{ item.name }}</td>
+                                          <td>{{ item.role }}</td>
+                                          <td>{{ item.phone }}</td>
+                                          <td>
+                                                <button type="button" class="btn btn-info mx-2" @click="handleEdit(item.id)">Edit</button>
+                                                <button type="button" class="btn btn-danger" @click="handleDelete(item.id)">Delete</button>
+                                          </td>
+                                    </tr>
+                              </tbody>
+                        </table>
+                        <nav v-if="dataGrid.length > 10" aria-label="Page navigation example">
+                              <ul class="pagination justify-content-center">
+                                    <li class="page-item" v-bind:class="{ disabled: currPage === 1 }" @click.prevent="setPage(currPage - 1)"><a class="page-link" href="">Prev</a></li>
+                                    <li class="page-item" v-for="(n,index) in totalPage" v-bind:class="{ active: currPage === n }" :Key="index" @click.prevent="setPage(n)"><a class="page-link" href="">{{ n }}</a></li>
+                                    <li class="page-item" v-bind:class="{ disabled: currPage === totalPage }" @click.prevent="setPage(currPage + 1)"><a class="page-link" href="">Next</a></li>
+                              </ul>
+                        </nav>
+                  </div>
+            </div>
+      </div>
+</div>

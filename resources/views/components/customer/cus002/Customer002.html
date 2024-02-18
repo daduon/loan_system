@@ -1,0 +1,93 @@
+
+<div class="row">
+      <div class="col-lg-12">
+            <div class="card">
+                  <div class="card-body p-5">
+                        <div class="row mb-4">
+                              <div class="col-lg-6 mb-3">
+                                    <label for="status" class="form-label">Customer Type</label>
+                                    <select class="form-select" id="status" v-model="customerInfo.customerId">
+                                          <option value="">Select</option>
+                                          <option v-for="(item,index) in customerTypeList.data" :key="index" :value="item.id">{{ item.customer_type_name }}</option>
+                                    </select>
+                                    <div v-if="isInvalide && !customerInfo.customerId" class="invalid">Customer Type is require</div>
+                              </div>
+                              <div class="col-lg-6">
+                                    <label for="customerName" class="form-label">Customer Name</label>
+                                    <input type="text" class="form-control" v-model="customerInfo.customerName" id="customerName">
+                                    <div v-if="isInvalide && !customerInfo.customerName" class="invalid">Customer name is require</div>
+                              </div>
+
+                        </div>
+
+                        <div class="row mb-3">
+                              <div class="col-lg-6">
+                                    <label for="customerDod" class="form-label">Customer Dod</label>
+                                    <input type="date" v-model="customerInfo.customerDod" class="form-control" id="customerDod">
+                              </div>
+                              <div class="col-lg-6">
+                                    <label for="customerPhone" class="form-label">Customer Phone</label>
+                                    <input type="text" maxlength="10" class="form-control" v-model="customerInfo.customerPhone" id="customerPhone">
+                              </div>
+                        </div>
+
+                        <div class="row mb-3">
+                              <div class="col-lg-6">
+                                    <label for="gender" class="form-label">Gender</label>
+                                    <select class="form-select" id="gender" v-model="customerInfo.customerGender">
+                                          <option value="1">Male</option>
+                                          <option value="2">Female</option>
+                                    </select>
+                              </div>
+                              <div class="col-lg-6 mb-3">
+                                    <label for="status" class="form-label">Status</label>
+                                    <select class="form-select" id="status" v-model="customerInfo.customerStatus">
+                                          <option value="1">Active</option>
+                                          <option value="2">Inactive</option>
+                                    </select>
+                              </div>
+                        </div>
+
+                        <div class="row mb-3">
+                              <div class="col-6">
+                                    <label for="customerIdentity" class="form-label">Customer Identity</label>
+                                    <input type="text" class="form-control" id="customerIdentity" v-model="customerInfo.customerIdentity">
+                              </div>
+                              <div class="col-6">
+                                    <label for="discount" class="form-label">Discount</label>
+                                    <input type="number" class="form-control" id="discount" v-model="customerInfo.isdiscount">
+                              </div>
+                        </div>
+
+                        <div class="row mb-3">
+                              <div class="col-lg-6">
+                                    <label for="email" class="form-label">Customer Email</label>
+                                    <input type="email" v-model="customerInfo.customerEmail" class="form-control" id="email">
+                              </div>
+                              <div class="col-lg-6">
+                                    <label for="address" class="form-label">Address</label>
+                                    <input type="text" class="form-control" id="address" v-model="customerInfo.customerAddress">
+                              </div>
+                        </div>
+                        <div class="profile-edit mb-5" id="profile-edit">
+                              <div class="row mb-3">
+                                    <div class="col-md-8 col-lg-9">
+                                          <img :src="fileInfo.image" style="width: 100px; height:100px;" alt="Profile">
+                                          <div class="pt-2">
+                                                <input class="btn" title="Upload new profile image" type="file" :v-model="fileInfo.image" accept="image/png, image/gif, image/jpeg" @change="handleUploadImage($event)"/>
+                                          </div>
+                                    </div>
+                              </div>
+                        </div>
+                        <div class="d-flex">
+                              <div class="btn-back">
+                                    <button type="button" class="btn btn-dark px-4" @click="handleBack">Back</button>
+                              </div>
+                              <div class="btn-save mx-3">
+                                    <button type="button" class="btn btn-primary px-4" @click="handleSave">Save</button>
+                              </div>
+                        </div>
+                  </div>
+            </div>
+      </div>
+</div>

@@ -1,0 +1,215 @@
+<!-- <div class="row">
+    <div class="col-lg-12 mt-3 mb-3 text-end">
+        <button type="button" class="btn btn-primary px-4">Create</button>
+    </div>
+</div> -->
+<div class="pagetitle">
+    <h1>Dashboard</h1>
+    <nav class="mt-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <router-link to="/home">Home</router-link>
+            </li>
+            <li class="breadcrumb-item">
+                <a>Summary Loan</a>
+            </li>
+        </ol>
+    </nav>
+</div>
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Summary Loan</h5>
+                <div class="row">
+                    <div class="col-md-4 mt-2">
+                        <label class="form-label">Customer</label>
+                        <select
+                            class="form-select"
+                            v-model="customer_selected"
+                            @change="GetBorrowId()"
+                        >
+                            <option disabled selected value="">
+                                Select a Customer
+                            </option>
+                            <option
+                                v-for="(item,index) in customer"
+                                :key="index"
+                                :value="item.id"
+                            >
+                                {{item.id}} - {{item.customer_name}}
+                            </option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 mt-2">
+                        <label class="form-label">Borrow ID</label>
+                        <select class="form-select" v-model="borrowId_selected">
+                            <option disabled selected value="">
+                                Select a Borrow ID
+                            </option>
+                            <option
+                                v-for="(item,index) in borrowId"
+                                :key="index"
+                                :value="item.id"
+                            >
+                                {{item.id}}
+                            </option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 mt-2">
+                        <label class="form-label">Summary Type</label>
+                        <select class="form-select" v-model="type_selected">
+                            <option selected value="all">All</option>
+                            <option value="paid">Paid</option>
+                            <option value="unpaid">Unpaid</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12 mt-3 text-end">
+                        <button class="btn btn-primary" @click="GetSummary()">
+                            <i class="bi bi-search"></i>
+                            Search
+                        </button>
+                    </div>
+                </div>
+                <hr />
+                <div>
+                    <table
+                        id="loanSummaryTbl"
+                        class="table"
+                        style="width: 100%"
+                    >
+                        <thead>
+                            <tr>
+                                <th scope="col">No</th>
+                                <th scope="col">Loan ID</th>
+                                <th scope="col">Loan Amount</th>
+                                <th scope="col">Repay Principle Amount</th>
+                                <th scope="col">Total Pay Amount</th>
+                                <th scope="col">From Date</th>
+                                <th scope="col">To Date</th>
+                                <th scope="col">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody style="margin-bottom: 10px">
+                            <tr
+                                v-for="(item,index) in summary.detail"
+                                :key="index"
+                            >
+                                <th>{{index + 1}}</th>
+                                <th>{{item.id}}</th>
+                                <td>
+                                    {{formatCurrency(item.loanamount)}} {{item.currencycode ===
+                                    "USD" ? 'USD' : "KHR"}}
+                                </td>
+                                <td>
+                                    {{formatCurrency(item.repayprincipal)}} {{item.currencycode
+                                    === "USD" ? 'USD' : "KHR"}}
+                                </td>
+                                <!-- <td>
+                                    {{item.repayinterest}} {{item.currencycode
+                                    === "USD" ? 'USD' : "KHR"}}
+                                </td> -->
+                                <!-- <td>
+                                    {{item.taxamount}} {{item.currencycode ===
+                                    "USD" ? 'USD' : "KHR"}}
+                                </td> -->
+                                <td>
+                                    {{formatCurrency(item.totalpay)}} {{item.currencycode ===
+                                    "USD" ? 'USD' : "KHR"}}
+                                </td>
+                                <td>{{FomartDate(item.paymentfromdate)}}</td>
+                                <td>{{FomartDate(item.paymenttodate)}}</td>
+                                <td>
+                                    <span
+                                        v-if="item.schedulestatuscode === 1"
+                                        class="badge bg-success"
+                                        >Paid</span
+                                    >
+                                    <span
+                                        v-if="item.schedulestatuscode !== 1"
+                                        class="badge bg-danger"
+                                        >Unpaid</span
+                                    >
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tfoot style="background-color: rgba(0, 0, 0, 0.5)">
+                            <tr>
+                                <th v-if="summary.detail" colspan="2"></th>
+                                <th v-if="summary.detail">
+                                    Loan Amount:
+                                    <br />
+                                    {{summary.detail[0].loanamount ? formatCurrency(summary.detail[0].loanamount) : ''}}
+                                    {{summary.detail[0].currencycode === "USD" ?
+                                    'USD' : "KHR"}}
+                                </th>
+                                <th v-if="summary.summary">
+                                    Total Principle Amount:
+                                    <br />
+                                    {{formatCurrency(summary.summary[0].totalppay)}}
+                                    {{summary.detail[0].currencycode === "USD" ?
+                                    'USD' : "KHR"}}
+                                </th>
+                                <!-- <th v-if="summary.summary">
+                                    Total Interest Amount:
+                                    <br />
+                                    {{summary.summary[0].totalipay}}
+                                    {{summary.detail[0].currencycode === "USD" ?
+                                    'USD' : "KHR"}}
+                                </th> -->
+                                <!-- <th v-if="summary.summary">
+                                    Total Tax Amount:
+                                    <br />
+                                    {{summary.summary[0].totaltpay}}
+                                    {{summary.detail[0].currencycode === "USD" ?
+                                    'USD' : "KHR"}}
+                                </th> -->
+                                <th v-if="summary.summary">
+                                    Grand Total Amount:
+                                    <br />
+                                    {{formatCurrency(summary.summary[0].grand_total)}}
+                                    {{summary.detail[0].currencycode === "USD" ?
+                                    'USD' : "KHR"}}
+                                </th>
+                                <th v-if="summary.summary" colspan="3"></th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" tabindex="-1" id="loanSummaryModal">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Loan Summary</h5>
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal"
+                    aria-label="Close"
+                ></button>
+            </div>
+            <div class="modal-body">
+                <p>Modal body text goes here.</p>
+            </div>
+            <div class="modal-footer">
+                <!-- <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary">Save changes</button> -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<transition name="fade">
+    <div class="loader-container" v-if="loading">
+        <div class="spinner-border text-primary" role="status">
+            <span class="sr-only"></span>
+        </div>
+    </div>
+</transition>

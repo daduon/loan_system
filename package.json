@@ -1,0 +1,29 @@
+{
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build"
+    },
+    "devDependencies": {
+        "@vitejs/plugin-vue": "^4.3.4",
+        "axios": "^1.1.2",
+        "laravel-vite-plugin": "^0.8.0",
+        "sass": "^1.68.0",
+        "vite": "^4.4.9"
+    },
+    "dependencies": {
+        "@element-plus/icons-vue": "^2.1.0",
+        "@types/jspdf": "^2.0.0",
+        "element-plus": "^2.3.14",
+        "jspdf": "^2.5.1",
+        "jspdf-autotable": "^3.6.0",
+        "router": "^1.3.8",
+        "vue": "^3.2.36",
+        "vue-axios": "^3.5.2",
+        "vue-loader": "^17.2.2",
+        "vue-router": "^4.2.4",
+        "xlsx": "^0.18.5",
+        "xlsx-js-style": "^1.2.0"
+    }
+}

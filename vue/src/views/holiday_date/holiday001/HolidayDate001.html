@@ -1,0 +1,54 @@
+<Loading :loading="isLoading" ></Loading>
+
+<div class="pagetitle">
+      <h1>Dashboard</h1>
+      <nav class="mt-3">
+            <ol class="breadcrumb">
+                  <li class="breadcrumb-item">
+                        <router-link to="/home">Home</router-link>
+                  </li>
+                  <li class="breadcrumb-item">
+                        <a>Holiday Date</a>
+                  </li>
+            </ol>
+      </nav>
+</div>
+<div class="row">
+      <div class="col-lg-12 mt-3 mb-3 text-end">
+            <button type="button" class="btn btn-primary px-4" @click="register">
+                  <i class="bi bi-plus-circle"></i> Add
+            </button>
+      </div>
+</div>
+<div class="row">
+      <div class="col-lg-12">
+            <div class="card">
+                  <div class="card-body">
+                        <h5 class="card-title">Holiday</h5>
+                        <table class="table datatable">
+                              <thead>
+                                    <tr>
+                                          <th scope="col" v-for="(item,index) in headers" :key="index">{{item.label}}</th>
+                                    </tr>
+                              </thead>
+                              <tbody>
+                                    <tr v-for="(item, index) in holidayDateList" :key="index">
+                                          <th scope="row">{{index + 1}}</th>
+                                          <td>{{ item.countrycode }}</td>
+                                          <td>{{ item.basedate }}</td>
+                                          <td>{{ item.holidaydate }}</td>
+                                          <td>{{ item.registerdate }}</td>
+                                          <td>{{ item.modifydate }}</td>
+                                          <td>
+                                                <button type="button" class="btn btn-info mx-2" @click="handleEdit(item.id)">
+                                                      <i class="bx bx-edit"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-danger" @click="handleDelete(item.id)">Delete</button>
+                                          </td>
+                                    </tr>
+                              </tbody>
+                        </table>
+                  </div>
+            </div>
+      </div>
+</div>

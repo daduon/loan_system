@@ -1,0 +1,85 @@
+<div class="row">
+      <div class="col-lg-12 mt-3 mb-3 text-end">
+            <button type="button" class="btn btn-primary px-4" @click="register">Create</button>
+      </div>
+</div>
+<div class="row">
+      <div class="col-lg-12">
+            <div class="card">
+                  <div class="card-body">
+                        <h5 class="card-title">Customer Type List</h5>
+                        <!-- <table class="table datatable">
+                              <thead>
+                                    <tr>
+                                          <th scope="col" v-for="(item,index) in headers" :key="index">{{item.label}}</th>
+                                    </tr>
+                              </thead>
+                              <tbody>
+                                    <tr v-for="(item, index) in customerTypeList" :key="index">
+                                          <th scope="row">{{index + 1}}</th>
+                                          <td>{{ item.customerTypeName }}</td>
+                                          <td>{{ item.customerTyperRate }}</td>
+                                          <td>{{ item.customerTypeDes }}</td>
+                                          <td>
+                                                <button type="button" class="btn btn-info mx-2" @click="handleEdit(item.id)">
+                                                      <i class="bx bx-edit">Edit</i>
+                                                </button>
+                                                <button type="button" class="btn btn-danger" @click="handleDelete(item.id)">
+                                                      <i class="bx bxs-trash">Delete</i>
+                                                </button>
+                                          </td>
+                                    </tr>
+                              </tbody>
+                        </table> -->
+                            <el-table v-loading="loading" :data="customerTypeList">
+                                <el-table-column label="No.">
+                                  <template #default="scope">
+                                    <div style="display: flex; align-items: center">
+                                      <span style="margin-left: 10px">{{ scope.row.id }}</span>
+                                    </div>
+                                  </template>
+                                </el-table-column>
+                                <el-table-column label="Customer Type Name">
+                                  <template #default="scope">
+                                    <div style="display: flex; align-items: center">
+                                        <span style="margin-left: 10px">{{ scope.row.customerTypeName }}</span>
+                                    </div>
+                                  </template>
+                                </el-table-column>
+                                <el-table-column label="Customer Type Rate">
+                                    <template #default="scope">
+                                      <div style="display: flex; align-items: center">
+                                          <span style="margin-left: 10px">{{ scope.row.customerTypeRate }}</span>
+                                      </div>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column label="Customer Type Description">
+                                    <template #default="scope">
+                                      <div style="display: flex; align-items: center">
+                                          <span style="margin-left: 10px">{{ scope.row.customerTypeDes }}</span>
+                                      </div>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column label="Operations">
+                                  <template #default="scope">
+                                    <el-button
+                                        type="primary"
+                                        plain
+                                        size="large"
+                                        @click="handleEdit(scope.row.id)"
+                                      >Edit</el-button
+                                    >
+                                    <el-button
+                                      size="large"
+                                      type="danger"
+                                      plain
+                                      @click="handleDelete(scope.row.id)"
+                                      >Delete</el-button
+                                    >
+                                  </template>
+                                </el-table-column>
+                              </el-table>
+                  </div>
+            </div>
+      </div>
+</div>

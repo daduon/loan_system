@@ -1,0 +1,100 @@
+<transition name="fade">
+    <div class="loader-container" v-if="isLoading">
+        <div class="spinner-border text-primary" role="status">
+            <span class="sr-only"></span>
+        </div>
+    </div>
+</transition>
+
+<div class="pagetitle">
+    <h1>Dashboard</h1>
+    <nav class="mt-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <router-link to="/home">Home</router-link>
+            </li>
+            <li class="breadcrumb-item">
+                <router-link to="/loan">Loan</router-link>
+            </li>
+            <li class="breadcrumb-item">
+                <a>Loan Schedules</a>
+            </li>
+        </ol>
+    </nav>
+</div>
+
+<div class="row dec" id="test">
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Loan Schedules</h5>
+                <div class="row">
+                    <div class="col-6">
+                        <!-- <div class="search my-2" style="width: 250px">
+                            <input type="text" v-model="search" class="form-control" :placeholder="`Search by ${searchBy !== '' ? searchBy : 'name'}`">
+                        </div> -->
+                    </div>
+                    <div class="col-6 text-end">
+                        <!-- <button type="button" class="btn btn-primary px-3 mx-2" @click="exportPdf">PDF</button>
+                        <button type="button" class="btn btn-primary px-3" @click="exportExcel">Excel</button> -->
+                    </div>
+                </div>
+                <div>
+                    <table
+                        id="loanSummaryTbl"
+                        class="table"
+                        style="width: 100%"
+                    >
+                        <thead>
+                            <tr>
+                                <th>No.</th>
+                                <th scope="col" v-for="(item, index) in headers" :key="index">
+                                    {{ item.label }}
+                                </th>
+                                <th>Paid Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="(item, index) in dataGrid.slice(pageStart, pageStart + countOfPage)" :key="index">
+                                <th scope="row">{{ (currPage - 1) * countOfPage + index + 1 }}</th>
+                                <td>{{ item.customername }}</td>
+                                <td>{{ dateFormat(item.paymentapplydate) }}</td>
+                                <td>{{ formatCurrency(item.payment) }}</td>
+                                <td>{{ formatCurrency(item.transactionprincipal) }}</td>
+                                <td>{{ item.remark }}</td>
+                                <td v-if="item.schedulestatuscode ===1">
+                                    <button
+                                        type="button"
+                                        class="btn btn-primary btn-sm"
+                                        disabled
+                                    >
+                                        <i class="bi bi-check2-circle"></i> Paid
+                                    </button>
+                                </td>
+                                <td v-else>
+                                    <div class="form-check form-switch">
+                                        <input
+                                            class="form-check-input paid_btn"
+                                            ref="paidCheckbox"
+                                            type="checkbox"
+                                            :checked="checkbox"
+                                            id="flexSwitchCheckChecked"
+                                            @click="update(item.borrowid,item.borrowingid,item.scheduleseqno)"
+                                        />
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <nav v-if="dataGrid.length > 10" aria-label="Page navigation example">
+                        <ul class="pagination justify-content-center">
+                              <li class="page-item" v-bind:class="{ disabled: currPage === 1 }" @click.prevent="setPage(currPage - 1)"><a class="page-link" href="">Prev</a></li>
+                              <li class="page-item" v-for="(n,index) in totalPage" v-bind:class="{ active: currPage === n }" :Key="index" @click.prevent="setPage(n)"><a class="page-link" href="">{{ n }}</a></li>
+                              <li class="page-item" v-bind:class="{ disabled: currPage === totalPage }" @click.prevent="setPage(currPage + 1)"><a class="page-link" href="">Next</a></li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
