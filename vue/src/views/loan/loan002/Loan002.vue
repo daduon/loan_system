@@ -22,8 +22,9 @@ export default defineComponent({
             customer_selected_id: "",
             coemployee_selected_id: "",
             borrow_type: "01",
-            mDate: new Date(""),
-            nDate: new Date(""),
+            mDate: "",
+            nDate: new Date().toISOString().split("T")[0],
+            inputNumber: 0,
             remark: "",
             loan_amount: "0",
             // firstInterestPaymentDate: "20230901",
@@ -47,20 +48,26 @@ export default defineComponent({
         };
     },
     watch: {
-        'mDate'(newValue){
-            if(newValue){
+        'borrowingPrinciplePaymentTypeCode'(newValue) {
+            this.generateDate(this.inputNumber, this.nDate, newValue)
+        },
+        'inputNumber'(newValue) {
+            this.generateDate(newValue, this.nDate, this.borrowingPrinciplePaymentTypeCode);
+        },
+        'mDate'(newValue) {
+            if (newValue) {
                 this.mDate = newValue;
-                if(typeof this.nDate == 'string' && typeof this.mDate == 'string'){
+                if (typeof this.nDate == 'string' && typeof this.mDate == 'string') {
                     setTimeout(() => {
                         this.getCountDate();
                     }, 1000);
                 }
             }
         },
-        'nDate'(newValue){
-            if(newValue){
+        'nDate'(newValue) {
+            if (newValue) {
                 this.nDate = newValue;
-                if(typeof this.nDate == 'string' && typeof this.mDate == 'string'){
+                if (typeof this.nDate == 'string' && typeof this.mDate == 'string') {
                     setTimeout(() => {
                         this.getCountDate();
                     }, 1000);
@@ -69,16 +76,26 @@ export default defineComponent({
         }
     },
     methods: {
-        onClickType(type:any){
+        generateDate(inputNumber: number, sDate: string, paymentType: string) {
+            const date = new Date(sDate);
+            if (paymentType == "02") {
+                date.setDate(date.getDate() + Number(inputNumber));
+                this.mDate = date.toISOString().split("T")[0];
+            } else {
+                date.setMonth(date.getMonth() + Number(inputNumber));
+                this.mDate = date.toISOString().split("T")[0];
+            }
+        },
+        onClickType(type: any) {
             this.oldType = type;
         },
-        onChangeType(type:any){
+        onChangeType(type: any) {
             this.borrowingPrinciplePaymentTypeCode = type;
-            if(this.oldType !== this.borrowingPrinciplePaymentTypeCode){
+            if (this.oldType !== this.borrowingPrinciplePaymentTypeCode) {
                 this.getCountDate();
             }
         },
-        async getCountDate(){
+        async getCountDate() {
             const type = this.borrowingPrinciplePaymentTypeCode;
             const formDate = this.nDate.toString().replace(/-/g, "");
             const toDate = this.mDate.toString().replace(/-/g, "");
@@ -147,7 +164,7 @@ export default defineComponent({
                 ),
             };
 
-            if (this.customerId == "" || this.loan_amount == "0") {
+            if (this.customerId == "" || this.loan_amount == "0" || this.coEmployeeId == "") {
                 this.isInvalide = true;
                 toastService.toastMessage("error", "missing Some field");
                 this.loading = false;
