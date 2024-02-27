@@ -756,6 +756,7 @@ class BorrowMasterController extends Controller
             , C.SCHEDULESEQNO											AS scheduleSeqNo
             , C.ID 														AS borrowId
             , B.REMARKDESC												AS remark
+            , B.CURRENCYCODE                                            AS currencyCode
             , (C.REPAYTAXAMOUNT + C.REPAYINTEREST + C.REPAYPRINCIPAL) 	AS payment
         FROM CUSTOMERS AS A
         INNER JOIN BORROW_MASTERS 	AS B ON A.ID = B.CUSTOMER_ID

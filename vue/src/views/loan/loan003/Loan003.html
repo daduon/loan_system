@@ -59,6 +59,7 @@
                                 <th scope="row">{{ (currPage - 1) * countOfPage + index + 1 }}</th>
                                 <td>{{ item.customername }}</td>
                                 <td>{{ dateFormat(item.paymentapplydate) }}</td>
+                                <td>{{ item.currencycode }}</td>
                                 <td>{{ formatCurrency(item.payment) }}</td>
                                 <td>{{ formatCurrency(item.transactionprincipal) }}</td>
                                 <td>{{ item.remark }}</td>

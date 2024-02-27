@@ -38,6 +38,7 @@ export default defineComponent({
             return [
                 { label: "Customer Name", prop: 'customername' },
                 { label: "Due Date", prop: 'paymentapplydate' },
+                { label: "Currency", prop: 'currencyCode' },
                 { label: "Payment", prop: 'payment' },
                 { label: "Balance", prop: 'transactionprincipal' },
                 { label: "Remark", prop: 'remark' },

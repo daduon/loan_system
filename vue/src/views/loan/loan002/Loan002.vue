@@ -51,9 +51,6 @@ export default defineComponent({
         'borrowingPrinciplePaymentTypeCode'(newValue) {
             this.generateDate(this.inputNumber, this.nDate, newValue)
         },
-        'inputNumber'(newValue) {
-            this.generateDate(newValue, this.nDate, this.borrowingPrinciplePaymentTypeCode);
-        },
         'mDate'(newValue) {
             if (newValue) {
                 this.mDate = newValue;
@@ -76,6 +73,9 @@ export default defineComponent({
         }
     },
     methods: {
+        onChangeInputNumber(num:any){
+            this.generateDate(num, this.nDate, this.borrowingPrinciplePaymentTypeCode);
+        },
         generateDate(inputNumber: number, sDate: string, paymentType: string) {
             const date = new Date(sDate);
             if (paymentType == "02") {
