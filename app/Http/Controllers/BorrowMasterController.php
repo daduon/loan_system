@@ -100,17 +100,17 @@ class BorrowMasterController extends Controller
 			, BorrowingPrinciplePaymentTypeCode AS (SELECT CASE '01' WHEN '01' THEN 1 ELSE 0 END borrowingPrinciplePaymentTypeCode)--Make Code as month count
 			, maturityDate 		AS ( select '$maturityDate' 		maturityDate ) 		--Define for using
 			, newDate 			AS ( select '$newDate' 				newDate ) 			--Define for using >>> note: is date for pay
-			, firstPaymentDate 	AS ( select' $firstInterestPaymentDate' 	firstPaymentDate )	--Define for using >>> note: date register loan
+			, firstPaymentDate 	AS ( select '$firstInterestPaymentDate' 	firstPaymentDate )	--Define for using >>> note: date register loan
 			, allDate AS ( --Merge date param as one row
 				SELECT * FROM newDate
 				CROSS JOIN firstPaymentDate
 				CROSS JOIN maturityDate
 			)
-			, InterestSchedule AS (
+			, InterestSchedule AS ( 
 				WITH RECURSIVE InterestSchedule(n, o, p) as
 				( SELECT firstPaymentDate n, 0.01 o, firstPaymentDate p from firstPaymentDate
 				    UNION ALL
-				    SELECT TO_CHAR(n::DATE + CAST((borrowingInterestPaymentTypeCode)||' '||'MONTH' AS INTERVAL), 'yyyymmdd'), o + 0.01, TO_CHAR('$firstInterestPaymentDate'::DATE + CAST((borrowingInterestPaymentTypeCode * o)||' '||'MONTH' AS INTERVAL), 'yyyymmdd')
+				    SELECT TO_CHAR(n::DATE + CAST((borrowingInterestPaymentTypeCode)||' '||'MONTH' AS INTERVAL), 'yyyymmdd'), o + 0.01, TO_CHAR('$firstInterestPaymentDate'::DATE + CAST((borrowingInterestPaymentTypeCode * o)||' '||'MONTH' AS INTERVAL), 'yyyymmdd') 
 				    FROM InterestSchedule n CROSS JOIN BorrowingInterestPaymentTypeCode
 				    WHERE n.p < (select maturityDate FROM maturityDate)
 			    )select * from InterestSchedule
@@ -130,7 +130,7 @@ class BorrowMasterController extends Controller
 				SELECT maturityDate from maturityDate
 			)
 --			select * from b
---
+--			
 			, c AS ( --Move to next biz date
 				select
 						(SELECT AA.basedate FROM holiday_dates AA WHERE AA.basedate = b.dates AND AA.holidaydate ='01' ORDER BY AA.basedate LIMIT 1) nextBizDay
@@ -143,7 +143,7 @@ class BorrowMasterController extends Controller
 					dates
 			)
 --			SELECT * FROM c
---
+--			
 			, d as ( --Filter out the date after maturity date
 				SELECT
 						CASE WHEN nextBizDay = newdate THEN newdate ELSE nextBizDay END fromDate
@@ -157,12 +157,12 @@ class BorrowMasterController extends Controller
 					dates
 			)
 --			SELECT * FROM d
---
+--			
 			, e as ( -- If days in last records of schedule is less than 15 days it will remove one month
 				SELECT
 					*
 					, todate::DATE - fromDate::DATE  dayCount
-					, case
+					, case 
 						when todate = maturitydate and (todate::DATE - fromDate::DATE) < 15 THEN monthcount
 					  else monthcount end monthcount1
 				FROM
@@ -170,7 +170,7 @@ class BorrowMasterController extends Controller
 				where toDate IS NOT NULL
 			)
 --			SELECT * FROM e
---
+--			
 			,f as ( --Merge the month that is less than 15 days
 				SELECT
 					MIN(fromdate) fromdate,
@@ -183,14 +183,14 @@ class BorrowMasterController extends Controller
 					MIN(monthcount) monthcount,
 					CASE when SUM(daycount) > 1 then 1 else SUM(daycount) end daycount
 				FROM
-					e
+					e 
 				group by monthcount1
 				order by monthcount
 			)
 --			SELECT * FROM f
---
+--			
 			, g as ( --Calculate monthN for Pricipal Pay
-				SELECT
+				SELECT														
 					*
 					, CEIL(monthcount*borrowinginterestpaymenttypecode/borrowingprinciplepaymenttypecode::NUMERIC)  AS monthN
 					, ROW_NUMBER () OVER (PARTITION BY CEIL(monthcount*borrowinginterestpaymenttypecode/borrowingprinciplepaymenttypecode::NUMERIC)) monthNCount
@@ -198,35 +198,35 @@ class BorrowMasterController extends Controller
 				FROM f CROSS JOIN BorrowingInterestPaymentTypeCode CROSS JOIN BorrowingPrinciplePaymentTypeCode
 			)
 --			select * from g
---
+--			
 			, H AS (
 				SELECT
 					*
-					, CASE
-						WHEN
-								(borrowinginterestpaymenttypecode = borrowingprinciplepaymenttypecode)
+					, CASE 
+						WHEN 
+								(borrowinginterestpaymenttypecode = borrowingprinciplepaymenttypecode) 
 							OR
 								(monthNCount * borrowinginterestpaymenttypecode =  borrowingprinciplepaymenttypecode) --Interval
 							OR
 								(maxMonthCount = monthcount) --Last Row
-								THEN TRUE
-						ELSE
-							FALSE
+								THEN TRUE 
+						ELSE 
+							FALSE 
 						END  isPrinciplePayment
 				FROM
 					G
 			)
 --			select * FROM h
---
+--			
 			, Months AS (
-				SELECT *
+				SELECT * 
 					, SUM(CASE WHEN isprinciplepayment THEN 1 ELSE 0 END) OVER() AS principlePaymentCount
 				FROM H
 			)
 --			select * from Months
---
+--			
 			, Days AS (
-				SELECT
+				SELECT 
 					TO_CHAR(days, 'yyyymmdd') days,
 					1 as dayCount,
 					$loanAmount loanBalance,
@@ -239,9 +239,9 @@ class BorrowMasterController extends Controller
 				) AS days CROSS JOIN allDate
 			)
 --			select * from Days
---
+--			
 			, MERG_DAY_MONTH AS (
-				SELECT
+				SELECT 
 					A.*
 					, B.toDate paymentDate
 					, B.isPrinciplePayment
@@ -250,25 +250,29 @@ class BorrowMasterController extends Controller
 					, B.toDate
 					, B.monthcount
 					, B.principlePaymentCount
-					, COALESCE(CASE WHEN B.isprinciplepayment THEN
-							CASE
-									WHEN A.currencyCode = 'USD' THEN TRUNC(((A.loanbalance::numeric * applyInterestRate/100) + A.loanbalance::numeric) / B.principlePaymentCount, 2)
-									WHEN A.currencyCode = 'KHR' THEN TRUNC(((A.loanbalance::numeric * applyInterestRate/100) + A.loanbalance::numeric) / B.principlePaymentCount)
-									ELSE 0
-								END
+					, COALESCE(CASE WHEN B.isprinciplepayment THEN 
+							CASE 
+									WHEN A.currencyCode = 'USD' THEN TRUNC((( A.loanbalance::numeric) / B.principlePaymentCount)+(A.loanbalance::numeric * applyInterestRate/100), 2)
+									WHEN A.currencyCode = 'KHR' THEN TRUNC((( A.loanbalance::numeric) / B.principlePaymentCount)+(A.loanbalance::numeric * applyInterestRate/100))
+									ELSE 0 
+								END 
 							ELSE 0 END, 0) principlePaymentAmount
-					,  CASE
-							WHEN A.currencyCode = 'USD' THEN TRUNC(((A.loanbalance::numeric * applyInterestRate/100) + A.loanbalance::numeric) / B.principlePaymentCount, 2) * (B.principlePaymentCount)
-							WHEN A.currencyCode = 'KHR' THEN TRUNC(((A.loanbalance::numeric * applyInterestRate/100) + A.loanbalance::numeric) / B.principlePaymentCount) * (B.principlePaymentCount)
-						ELSE 0
+					,  CASE 
+							WHEN A.currencyCode = 'USD' THEN TRUNC((( A.loanbalance::numeric) / B.principlePaymentCount)+(A.loanbalance::numeric * applyInterestRate/100), 2) * (B.principlePaymentCount)
+							WHEN A.currencyCode = 'KHR' THEN TRUNC((( A.loanbalance::numeric) / B.principlePaymentCount)+(A.loanbalance::numeric * applyInterestRate/100)) * (B.principlePaymentCount)
+						ELSE 0 
 					  end loanCalculation
+					,  CASE 
+							WHEN A.currencyCode = 'USD' THEN TRUNC((A.loanbalance::numeric * applyInterestRate/100),2)
+							WHEN A.currencyCode = 'KHR' THEN TRUNC((A.loanbalance::numeric * applyInterestRate/100))
+						ELSE 0  end interestCalcu
 				FROM
-					Days A
+					Days A 
 						LEFT JOIN Months B ON A.days = B.todate
 			)
 --			SELECT * FROM MERG_DAY_MONTH
---
-			, CalculateLoanBalance AS (
+--			
+			, CalculateLoanBalance AS ( 
 				SELECT
 					*
 					, SUM(principlepaymentamount) over (order by days asc rows between unbounded preceding and current row) accumulateSubstractAmount
@@ -277,7 +281,7 @@ class BorrowMasterController extends Controller
 					MERG_DAY_MONTH
 			)
 --			select * from CalculateLoanBalance
---
+--			
 			, CalculateLoanBalance1 AS (
 				SELECT
 					*
@@ -287,7 +291,7 @@ class BorrowMasterController extends Controller
 				CalculateLoanBalance
 			)
 --			select * from CalculateLoanBalance1
---
+--			
 			, CalculateLoanBalance2 AS (
 				SELECT
 					*
@@ -295,6 +299,8 @@ class BorrowMasterController extends Controller
 				FROM
 					CalculateLoanBalance1 A
 			)
+--			select * FROM CalculateLoanBalance2
+--			
 			, CalculateLoanBalance22 as (
 				select --not include first day
 					*
@@ -308,12 +314,13 @@ class BorrowMasterController extends Controller
 					, LEAD(monthcount) OVER (ORDER BY days) monthcount2
 					, LEAD(loanbalance2) OVER (ORDER BY days) loanbalance3
 					, LEAD(principlepaymentamount1) OVER (ORDER BY days) principlepaymentamount2
+					, LEAD(interestCalcu) OVER (ORDER BY days) 	interestCalcul	
 				from
 					CalculateLoanBalance2
 				ORDER BY days
 			)
 --			SELECT * FROM CalculateLoanBalance22
---
+--			
 			, CalculateLoanBalance3 AS (
 				SELECT
 					paymentdate3
@@ -323,17 +330,21 @@ class BorrowMasterController extends Controller
 					, MAX(applyinterestrate)	applyinterestrate
 					, MAX(fromdate2)				fromDate
 					, MAX(toDate2)				toDate
-					, CASE when SUM(daycount2) > 1 then max(principlepaymentamount1) else SUM(CASE WHEN paymentdate4 = days1 AND isprinciplepayment1 THEN principlepaymentamount2 ELSE 0 END) END  principlepaymentamount1
+					, CASE WHEN SUM(daycount2) > 1 THEN CASE WHEN MAX(principlepaymentamount1) = 0 THEN LEAD(principlepaymentamount1) OVER(ORDER BY paymentdate4) ELSE MAX(principlepaymentamount1) END
+						   ELSE SUM(CASE WHEN paymentdate4 = days1 AND isprinciplepayment1 
+						   THEN principlepaymentamount2 ELSE 0 END)
+					  END  principlepaymentamount1
 					, MIN(loanbalance3)			loanbalance
 					, MAX(loanbalance)			loanAmount
 					, MAX(currencycode)			currencycode
+					, MAX(interestCalcul) 		interestCalculation
 				FROM
 					CalculateLoanBalance22
-				GROUP BY paymentdate3
+				GROUP BY paymentdate3,principlepaymentamount1,paymentdate4
 				ORDER BY paymentdate3
 			)
 --			SELECT * FROM CalculateLoanBalance3
---
+--			
 			, CalculateLoanBalance4 AS (
 				SELECT
 					*
@@ -347,23 +358,28 @@ class BorrowMasterController extends Controller
 				, monthcount 									AS paymentNumberOfTime
 				, applyinterestrate 							AS applyInterestRate
 				, loanbalance 									AS loanBalance
-				, fromdate 										AS scheduleStartDate
+				, fromdate 										AS scheduleStartDate 
 				, todate 										AS scheduleEndDate
 				, daycount 										AS calcDays
+				, currencycode									as currencyCode
 				, principlepaymentamount1 						AS repayPrincipal
+				, interestCalculation							as interestPay
+				, CASE when currencycode = 'KHR' THEN ROUND(principlepaymentamount1 - interestCalculation)
+					   when currencycode = 'USD' THEN ROUND((principlepaymentamount1 - interestCalculation),2)
+						else 0 end  AS principal
 				, '01' 											AS ledgerStatusCode
---				, workdayCount									as workDaysCount
 			FROM
 				CalculateLoanBalance4
+			WHERE loanbalance is NOT NULL
                ");
         } else {
 
             $results = DB::select("
-                WITH /* K.vichet / this is schedule detail for insert into table schedule */
+            WITH /* K.vichet / this is schedule detail for insert into table schedule */
                 BorrowingInterestPaymentTypeCode AS (SELECT CASE '$borrowingInterestPaymentTypeCode' WHEN '01' THEN 1 WHEN '02' THEN 3 WHEN '03' THEN 6 WHEN '04' THEN 12 WHEN '05' THEN 9999 ELSE 0 END borrowingInterestPaymentTypeCode) --Make Code as month count
             , borrowingprinciplepaymenttypecode AS (SELECT CASE '$borrowingPrinciplePaymentTypeCode' WHEN '0.5' THEN 1 WHEN '01' THEN 1 WHEN '02' THEN 3 WHEN '03' THEN 6 WHEN '04' THEN 12 WHEN '05' THEN 9999 ELSE 0 END borrowingPrinciplePaymentTypeCode)--Make Code as month count
             , maturityDate 		AS ( select '$maturityDate' 		maturityDate ) 		--Define for using
-            , newDate 			AS ( select '$newDate' 				newDate ) 			--Define for using
+            , newDate 			AS ( select '$newDate'				newDate ) 			--Define for using
             , firstPaymentDate 	AS ( select '$firstInterestPaymentDate'	firstPaymentDate )	--Define for using
             , allDate AS ( --Merge date param as one row
                 SELECT * FROM newDate
@@ -422,10 +438,13 @@ class BorrowMasterController extends Controller
                 SELECT
                     *
                     , todate::DATE - fromDate::DATE  dayCount
-                        , case
-                                when todate = maturitydate and (todate::DATE - fromDate::DATE) < 15 THEN monthcount - 1
-                            else monthcount end
-                        monthcount1
+                    , CASE WHEN $paymentType::NUMERIC = 0.5 then 
+	                      monthcount
+		               ELSE 
+		               	  case
+		                     when todate = maturitydate and (todate::DATE - fromDate::DATE) < 15 THEN monthcount - 1
+		                  else monthcount end
+		               END  monthcount1
                 FROM
                     d
                 where toDate IS NOT NULL
@@ -446,6 +465,8 @@ class BorrowMasterController extends Controller
                 group by monthcount1
                 order by monthcount
             )
+--            SELECT * FROM f
+--            
             , g as ( --Calculate monthN for Pricipal Pay
                 SELECT
                     *
@@ -476,6 +497,8 @@ class BorrowMasterController extends Controller
                     , SUM(CASE WHEN isprinciplepayment THEN 1 ELSE 0 END) OVER() AS principlePaymentCount
                 FROM H
             )
+--            select * FROM Months
+--            
             , Days AS (
                 SELECT
                     TO_CHAR(days, 'yyyymmdd') days,
@@ -502,24 +525,24 @@ class BorrowMasterController extends Controller
                         when $paymentType::NUMERIC = 0.5 then
                             COALESCE(CASE WHEN B.isprinciplepayment THEN
                             CASE
-                                    WHEN A.currencyCode = 'USD' THEN TRUNC((A.loanbalance::numeric * applyInterestRate/100) + A.loanbalance::numeric / (B.principlePaymentCount/2), 2)/2
-                                    WHEN A.currencyCode = 'KHR' THEN TRUNC((A.loanbalance::numeric * applyInterestRate/100) + A.loanbalance::numeric / (B.principlePaymentCount/2))/2
+                                    WHEN A.currencyCode = 'USD' THEN TRUNC((( A.loanbalance::numeric) / (B.principlePaymentCount/2))+(A.loanbalance::numeric * applyInterestRate/100), 2)/2
+                                    WHEN A.currencyCode = 'KHR' THEN TRUNC((( A.loanbalance::numeric) / (B.principlePaymentCount/2))+(A.loanbalance::numeric * applyInterestRate/100))/2
                                     ELSE 0
                                 END
                             ELSE 0 END, 0)
                         when $paymentType::NUMERIC = 0.25 then -- a weekly
                                 COALESCE(CASE WHEN B.isprinciplepayment THEN
                                 CASE
-                                WHEN A.currencyCode = 'USD' THEN TRUNC((A.loanbalance::numeric * applyInterestRate/100) + A.loanbalance::numeric / (B.principlePaymentCount/4), 2)/4
-                                    WHEN A.currencyCode = 'KHR' THEN TRUNC((A.loanbalance::numeric * applyInterestRate/100) + A.loanbalance::numeric / (B.principlePaymentCount/4))/4
+                                WHEN A.currencyCode = 'USD' THEN TRUNC((( A.loanbalance::numeric) / (B.principlePaymentCount/4))+(A.loanbalance::numeric * applyInterestRate/100), 2)/4
+                                    WHEN A.currencyCode = 'KHR' THEN TRUNC((( A.loanbalance::numeric) / (B.principlePaymentCount/4))+(A.loanbalance::numeric * applyInterestRate/100))/4
                                     ELSE 0
                                 END
                             ELSE 0 END, 0)
                         else
                             COALESCE(CASE WHEN B.isprinciplepayment THEN
                             CASE
-                                    WHEN A.currencyCode = 'USD' THEN TRUNC((A.loanbalance::numeric * applyInterestRate/100) + A.loanbalance::numeric / B.principlePaymentCount, 2)
-                                    WHEN A.currencyCode = 'KHR' THEN TRUNC((A.loanbalance::numeric * applyInterestRate/100) + A.loanbalance::numeric / B.principlePaymentCount)
+                                    WHEN A.currencyCode = 'USD' THEN TRUNC((( A.loanbalance::numeric) / (B.principlePaymentCount))+(A.loanbalance::numeric * applyInterestRate/100), 2)
+                                    WHEN A.currencyCode = 'KHR' THEN TRUNC((( A.loanbalance::numeric) / (B.principlePaymentCount))+(A.loanbalance::numeric * applyInterestRate/100))
                                     ELSE 0
                                 END
                             ELSE 0 END, 0)
@@ -527,23 +550,40 @@ class BorrowMasterController extends Controller
                     , case
                         when $paymentType::NUMERIC = 0.5 then -- Half Month
                                 CASE
-                                    WHEN A.currencyCode = 'USD' THEN TRUNC((A.loanbalance::numeric * applyInterestRate/100) + A.loanbalance::numeric / (B.principlePaymentCount/2), 2) * (B.principlePaymentCount/2)
-                                    WHEN A.currencyCode = 'KHR' THEN TRUNC((A.loanbalance::numeric * applyInterestRate/100) + A.loanbalance::numeric / (B.principlePaymentCount/2)) * (B.principlePaymentCount/2)
+                                    WHEN A.currencyCode = 'USD' THEN TRUNC((( A.loanbalance::numeric) / (B.principlePaymentCount/2))+(A.loanbalance::numeric * applyInterestRate/100), 2) * (B.principlePaymentCount/2)
+                                    WHEN A.currencyCode = 'KHR' THEN TRUNC((( A.loanbalance::numeric) / (B.principlePaymentCount/2))+(A.loanbalance::numeric * applyInterestRate/100)) * (B.principlePaymentCount/2)
                                     ELSE 0
                             END
                         when $paymentType::NUMERIC = 0.25 then -- a weekly
                                 CASE
-                                    WHEN A.currencyCode = 'USD' THEN TRUNC((A.loanbalance::numeric * applyInterestRate/100) + A.loanbalance::numeric / (B.principlePaymentCount/4), 2) * (B.principlePaymentCount/4)
-                                    WHEN A.currencyCode = 'KHR' THEN TRUNC((A.loanbalance::numeric * applyInterestRate/100) + A.loanbalance::numeric / (B.principlePaymentCount/4)) * (B.principlePaymentCount/4)
+                                    WHEN A.currencyCode = 'USD' THEN TRUNC((( A.loanbalance::numeric) / (B.principlePaymentCount/4))+(A.loanbalance::numeric * applyInterestRate/100), 2) * (B.principlePaymentCount/4)
+                                    WHEN A.currencyCode = 'KHR' THEN TRUNC((( A.loanbalance::numeric) / (B.principlePaymentCount/4))+(A.loanbalance::numeric * applyInterestRate/100)) * (B.principlePaymentCount/4)
                                     ELSE 0
                             END
                         else
                                 CASE
-                                    WHEN A.currencyCode = 'USD' THEN TRUNC((A.loanbalance::numeric * applyInterestRate/100) + A.loanbalance::numeric / B.principlePaymentCount, 2) * B.principlePaymentCount
-                                    WHEN A.currencyCode = 'KHR' THEN TRUNC((A.loanbalance::numeric * applyInterestRate/100) + A.loanbalance::numeric / B.principlePaymentCount) * B.principlePaymentCount
+                                    WHEN A.currencyCode = 'USD' THEN TRUNC((( A.loanbalance::numeric) / B.principlePaymentCount)+(A.loanbalance::numeric * applyInterestRate/100), 2) * (B.principlePaymentCount)
+                                    WHEN A.currencyCode = 'KHR' THEN TRUNC((( A.loanbalance::numeric) / B.principlePaymentCount)+(A.loanbalance::numeric * applyInterestRate/100)) * (B.principlePaymentCount)
                                     ELSE 0
                             END
                         end loanCalculation
+                       , CASE 
+							when $paymentType::NUMERIC = 0.5 then -- Half Month 
+		                        CASE 
+									WHEN A.currencyCode = 'USD' THEN TRUNC((A.loanbalance::numeric * applyInterestRate/100),2)/2
+									WHEN A.currencyCode = 'KHR' THEN TRUNC((A.loanbalance::numeric * applyInterestRate/100))/2
+								ELSE 0  end 
+							when $paymentType::NUMERIC = 0.25 then -- a weekly
+								  CASE 
+									WHEN A.currencyCode = 'USD' THEN TRUNC((A.loanbalance::numeric * applyInterestRate/100),2)/4
+									WHEN A.currencyCode = 'KHR' THEN TRUNC((A.loanbalance::numeric * applyInterestRate/100))/4
+								ELSE 0  end
+							else 
+								 CASE 
+									WHEN A.currencyCode = 'USD' THEN TRUNC((A.loanbalance::numeric * applyInterestRate/100),2)
+									WHEN A.currencyCode = 'KHR' THEN TRUNC((A.loanbalance::numeric * applyInterestRate/100))
+								ELSE 0  end	
+								end interestCalcu
                 FROM
                     Days A
                         LEFT JOIN Months B ON A.days = B.todate
@@ -584,6 +624,7 @@ class BorrowMasterController extends Controller
                     , LEAD(monthcount) OVER (ORDER BY days) monthcount2
                     , LEAD(loanbalance2) OVER (ORDER BY days) loanbalance3
                     , LEAD(principlepaymentamount1) OVER (ORDER BY days) principlepaymentamount2
+                    , LEAD(interestCalcu) OVER (ORDER BY days) 	interestCalcul
                 from
                     CalculateLoanBalance2
                 ORDER BY days
@@ -600,6 +641,7 @@ class BorrowMasterController extends Controller
                     , MIN(loanbalance3)			loanbalance
                     , MAX(loanbalance)			loanAmount
                     , MAX(currencycode)			currencycode
+                    , MAX(interestCalcul) 		interestCalculation
                 FROM
                     CalculateLoanBalance22
                 GROUP BY paymentdate3
@@ -613,15 +655,19 @@ class BorrowMasterController extends Controller
                 WHERE paymentdate3 IS NOT null
             )
             SELECT
-                    '$borrowingNo'									AS borrowingNo
+                 '$borrowingNo'									AS borrowingNo
                 , paymentdate3 									AS paymentApplyDate
                 , monthcount 									AS paymentNumberOfTime
-                , applyinterestrate 							    AS applyInterestRate
+                , applyinterestrate 							AS applyInterestRate
                 , loanbalance 									AS loanBalance
                 , fromdate 										AS scheduleStartDate
                 , todate 										AS scheduleEndDate
                 , daycount 										AS calcDays
                 , principlepaymentamount1 						AS repayPrincipal
+                , interestCalculation							as interestPay
+                , CASE when currencycode = 'KHR' THEN ROUND(principlepaymentamount1 - interestCalculation)
+					   when currencycode = 'USD' THEN ROUND((principlepaymentamount1 - interestCalculation),2)
+						else 0 end  as principal
                 , '01' 											AS ledgerStatusCode
             FROM
                 CalculateLoanBalance4
