@@ -6,7 +6,6 @@ import { RequestService } from '../../../services/request-service';
 import { FileSize } from "../../../services/file-size";
 import Loading from "../../../components/Loading.vue";
 import { ToastService } from '../../../services/toast';
-import { data } from "jquery";
 
 const requestService = new RequestService();
 const fileSizeService = new FileSize();
@@ -20,10 +19,11 @@ export default defineComponent({
       },
       data() {
             const coEmployeeInfo = {
+                  id:'',
                   name: '',
                   role: '',
                   phone: '',
-                  adress: ''
+                  address: ''
             };
 
             const fileInfo = {

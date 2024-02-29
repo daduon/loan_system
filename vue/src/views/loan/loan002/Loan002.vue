@@ -44,6 +44,7 @@ export default defineComponent({
             // numofmonth:0,
             isInvalide: false,
             countDay: 0,
+            countDayOfMonth: 0,
             oldType: '00'
         };
     },
@@ -54,9 +55,18 @@ export default defineComponent({
         'mDate'(newValue) {
             if (newValue) {
                 this.mDate = newValue;
-                if (typeof this.nDate == 'string' && typeof this.mDate == 'string') {
+                const endDate = new Date(this.mDate);
+                const startDate = new Date(this.nDate);
+                
+                if(this.borrowingPrinciplePaymentTypeCode == '02'){
+                    if (typeof this.nDate == 'string' && typeof this.mDate == 'string') {
+                        setTimeout(() => {
+                            this.getCountDate();
+                        }, 1000);
+                    }
+                } else{
                     setTimeout(() => {
-                        this.getCountDate();
+                        this.countDayOfMonth = this.dayDiff(startDate, endDate)
                     }, 1000);
                 }
             }
@@ -72,7 +82,19 @@ export default defineComponent({
             }
         }
     },
+    created() {
+        this.GetAllCustomer();
+        this.GetAllCOEmployee();
+    },
     methods: {
+        dayDiff(startDate: any, endDate: any) {
+            if (!(startDate) || !(endDate)) {
+                throw new Error('Both arguments must be Date objects');
+            }
+            const diffInMs = endDate - startDate;
+            const days = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+            return days;
+        },
         onChangeInputNumber(num:any){
             this.generateDate(num, this.nDate, this.borrowingPrinciplePaymentTypeCode);
         },
@@ -196,10 +218,6 @@ export default defineComponent({
                 this.loan_amount = this.loan_amount.slice(0, maxLength);
             }
         },
-    },
-    created() {
-        this.GetAllCustomer();
-        this.GetAllCOEmployee();
-    },
+    }
 });
 </script>
