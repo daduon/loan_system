@@ -97,6 +97,7 @@ export default defineComponent({
         },
         onChangeInputNumber(num:any){
             this.generateDate(num, this.nDate, this.borrowingPrinciplePaymentTypeCode);
+            this.getCountDate();
         },
         generateDate(inputNumber: number, sDate: string, paymentType: string) {
             const date = new Date(sDate);
