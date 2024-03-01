@@ -57,7 +57,7 @@ export default defineComponent({
                 this.mDate = newValue;
                 const endDate = new Date(this.mDate);
                 const startDate = new Date(this.nDate);
-                
+
                 if(this.borrowingPrinciplePaymentTypeCode == '02'){
                     if (typeof this.nDate == 'string' && typeof this.mDate == 'string') {
                         setTimeout(() => {
@@ -97,6 +97,10 @@ export default defineComponent({
         },
         onChangeInputNumber(num:any){
             this.generateDate(num, this.nDate, this.borrowingPrinciplePaymentTypeCode);
+            this.getCountDate();
+        },
+        onChangeStartDate(startDate: string){
+            this.generateDate(this.inputNumber, startDate, this.borrowingPrinciplePaymentTypeCode);
             this.getCountDate();
         },
         generateDate(inputNumber: number, sDate: string, paymentType: string) {
