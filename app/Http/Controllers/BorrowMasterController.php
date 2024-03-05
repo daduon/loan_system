@@ -252,20 +252,24 @@ class BorrowMasterController extends Controller
 					, B.principlePaymentCount
 					, COALESCE(CASE WHEN B.isprinciplepayment THEN 
 							CASE 
-									WHEN A.currencyCode = 'USD' THEN TRUNC((( A.loanbalance::numeric) / B.principlePaymentCount)+(A.loanbalance::numeric * applyInterestRate/100), 2)
-									WHEN A.currencyCode = 'KHR' THEN TRUNC((( A.loanbalance::numeric) / B.principlePaymentCount)+(A.loanbalance::numeric * applyInterestRate/100))
+									WHEN A.currencyCode = 'USD' THEN TRUNC((( A.loanbalance::numeric) / B.principlePaymentCount), 2)
+									WHEN A.currencyCode = 'KHR' THEN TRUNC(( A.loanbalance::numeric) / B.principlePaymentCount)
 									ELSE 0 
 								END 
 							ELSE 0 END, 0) principlePaymentAmount
 					,  CASE 
-							WHEN A.currencyCode = 'USD' THEN TRUNC((( A.loanbalance::numeric) / B.principlePaymentCount)+(A.loanbalance::numeric * applyInterestRate/100), 2) * (B.principlePaymentCount)
-							WHEN A.currencyCode = 'KHR' THEN TRUNC((( A.loanbalance::numeric) / B.principlePaymentCount)+(A.loanbalance::numeric * applyInterestRate/100)) * (B.principlePaymentCount)
+							WHEN A.currencyCode = 'USD' THEN TRUNC((A.loanbalance::numeric), 2)
+							WHEN A.currencyCode = 'KHR' THEN TRUNC(A.loanbalance::numeric)
 						ELSE 0 
 					  end loanCalculation
 					,  CASE 
 							WHEN A.currencyCode = 'USD' THEN TRUNC((A.loanbalance::numeric * applyInterestRate/100),2)
 							WHEN A.currencyCode = 'KHR' THEN TRUNC((A.loanbalance::numeric * applyInterestRate/100))
 						ELSE 0  end interestCalcu
+					, CASE 
+							WHEN A.currencyCode = 'USD' THEN TRUNC((A.loanbalance::numeric / B.principlePaymentCount),2)
+							WHEN A.currencyCode = 'KHR' THEN TRUNC((A.loanbalance::numeric / B.principlePaymentCount))
+						ELSE 0  end payBalance 
 				FROM
 					Days A 
 						LEFT JOIN Months B ON A.days = B.todate
@@ -285,7 +289,7 @@ class BorrowMasterController extends Controller
 			, CalculateLoanBalance1 AS (
 				SELECT
 					*
-					, CASE WHEN days = maturitydate THEN principlepaymentamount + loanbalance1 ELSE principlepaymentamount END principlepaymentamount1
+					, CASE WHEN days = maturitydate THEN principlepaymentamount + loanbalance1 ELSE principlepaymentamount + interestCalcu END principlepaymentamount1
 					, CASE WHEN days = maturitydate THEN loanCalculation - (accumulatesubstractamount + loanbalance1) ELSE loanbalance1 END loanbalance2
 				FROM
 				CalculateLoanBalance
@@ -315,6 +319,7 @@ class BorrowMasterController extends Controller
 					, LEAD(loanbalance2) OVER (ORDER BY days) loanbalance3
 					, LEAD(principlepaymentamount1) OVER (ORDER BY days) principlepaymentamount2
 					, LEAD(interestCalcu) OVER (ORDER BY days) 	interestCalcul	
+					, LEAD(payBalance) OVER (ORDER BY days) payBalance1
 				from
 					CalculateLoanBalance2
 				ORDER BY days
@@ -337,7 +342,9 @@ class BorrowMasterController extends Controller
 					, MIN(loanbalance3)			loanbalance
 					, MAX(loanbalance)			loanAmount
 					, MAX(currencycode)			currencycode
-					, MAX(interestCalcul) 		interestCalculation
+					, CASE WHEN MIN(loanbalance3) = 0 THEN LAG(MAX(interestCalcul)) OVER(ORDER BY paymentdate4) ELSE MAX(interestCalcul) END interestCalculation
+--					, MAX(payBalance1)			payBalance2 
+					, CASE WHEN MIN(loanbalance3) = 0 THEN LAG(MIN(loanbalance3)) OVER(ORDER BY paymentdate4) ELSE MAX(payBalance1) END payBalance2
 				FROM
 					CalculateLoanBalance22
 				GROUP BY paymentdate3,principlepaymentamount1,paymentdate4
@@ -358,19 +365,17 @@ class BorrowMasterController extends Controller
 				, monthcount 									AS paymentNumberOfTime
 				, applyinterestrate 							AS applyInterestRate
 				, loanbalance 									AS loanBalance
-				, fromdate 										AS scheduleStartDate 
+				, fromdate 										AS scheduleStartDate
 				, todate 										AS scheduleEndDate
 				, daycount 										AS calcDays
 				, currencycode									as currencyCode
 				, principlepaymentamount1 						AS repayPrincipal
 				, interestCalculation							as interestPay
-				, CASE when currencycode = 'KHR' THEN ROUND(principlepaymentamount1 - interestCalculation)
-					   when currencycode = 'USD' THEN ROUND((principlepaymentamount1 - interestCalculation),2)
-						else 0 end  AS principal
+				, payBalance2									as principal
 				, '01' 											AS ledgerStatusCode
 			FROM
 				CalculateLoanBalance4
-			WHERE loanbalance is NOT NULL
+			WHERE loanbalance is NOT null and fromdate is not NULL
                ");
         } else {
 
