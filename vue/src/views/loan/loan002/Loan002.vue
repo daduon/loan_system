@@ -128,7 +128,7 @@ export default defineComponent({
             const toDate = this.mDate.toString().replace(/-/g, "");
             const res = await requestService.list(`/retrivecountdate/${type}/${formDate}/${toDate}`);
             if (res.status === 200) {
-                this.countDay = res.data[0].count;
+                this.countDay = res.data[0].calcdays;
             }
         },
         GetAllCustomer() {
