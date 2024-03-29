@@ -24,7 +24,7 @@ export default defineComponent({
             borrow_type: "01",
             mDate: "",
             nDate: new Date().toISOString().split("T")[0],
-            inputNumber: 0,
+            inputNumber: 1,
             remark: "",
             loan_amount: "0",
             // firstInterestPaymentDate: "20230901",
@@ -71,16 +71,16 @@ export default defineComponent({
                 }
             }
         },
-        'nDate'(newValue) {
-            if (newValue) {
-                this.nDate = newValue;
-                if (typeof this.nDate == 'string' && typeof this.mDate == 'string') {
-                    setTimeout(() => {
-                        this.getCountDate();
-                    }, 1000);
-                }
-            }
-        }
+        // 'nDate'(newValue) {
+        //     if (newValue) {
+        //         this.nDate = newValue;
+        //         if (typeof this.nDate == 'string' && typeof this.mDate == 'string') {
+        //             setTimeout(() => {
+        //                 this.getCountDate();
+        //             }, 1000);
+        //         }
+        //     }
+        // }
     },
     created() {
         this.GetAllCustomer();
@@ -221,6 +221,22 @@ export default defineComponent({
             if (this.loan_amount.length > maxLength) {
                 // If it does, truncate the input value to the maximum length
                 this.loan_amount = this.loan_amount.slice(0, maxLength);
+            }
+        },
+
+        inputAccountNumber(event:any) {
+            let keyCode = (event.keyCode ? event.keyCode : event.which);
+            if (keyCode < 48 || keyCode > 57) {
+                event.preventDefault();
+            }
+        },
+
+        validateInput(event:any) {
+            const value = event.target.value;
+            const leadingZerosRegex = /^0+/;
+            let num = leadingZerosRegex.test(value);
+            if (num) {
+                this.inputNumber = 1;
             }
         },
     }

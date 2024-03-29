@@ -67,7 +67,7 @@
                 <div class="row mt-2">
                     <div class="col-md-6">
                         <label class="form-label">{{ borrowingPrinciplePaymentTypeCode == '02' ? "Period Daily" : "Period Monthly" }}</label>
-                        <input type="number" class="form-control" @change="onChangeInputNumber(inputNumber)" v-model="inputNumber" />
+                        <input type="text" @keypress="inputAccountNumber" @keyup="validateInput" class="form-control" @change="onChangeInputNumber(inputNumber)" v-model="inputNumber" />
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">First Payment Date</label>
