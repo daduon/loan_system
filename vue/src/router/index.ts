@@ -147,6 +147,22 @@ const routes = [
                     ),
                 props: true,
             },
+            {
+                path: "/req-cash",
+                name: "req-cash",
+                component: () =>
+                    import(
+                        /* webpackChunkName: "req-cash" */ "../views/reports/rep_cash/Rep_cash.vue"
+                    ),
+            },
+            {
+                path: "/req-expense",
+                name: "req-expense",
+                component: () =>
+                    import(
+                        /* webpackChunkName: "req-expense" */ "../views/reports/rep_exp/rep_exp.vue"
+                    ),
+            },
         ],
     },
 ];

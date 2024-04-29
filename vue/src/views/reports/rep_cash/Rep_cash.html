@@ -1,0 +1,67 @@
+<transition name="fade">
+    <div class="loader-container" v-if="isLoading">
+        <div class="spinner-border text-primary" role="status">
+            <span class="sr-only"></span>
+        </div>
+    </div>
+</transition>
+
+<div class="pagetitle">
+    <h1>Dashboard</h1>
+    <nav class="mt-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <router-link to="/home">Home</router-link>
+            </li>
+            <li class="breadcrumb-item">
+                <a>Report Cash-In</a>
+            </li>
+        </ol>
+    </nav>
+</div>
+
+<div class="row dec">
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Report Cash-In</h5>
+                <div class="row">
+                    <div class="col-6">
+                        <!-- <div class="search my-2" style="width: 250px">
+                            <input type="text" v-model="search" class="form-control" :placeholder="`Search by ${searchBy !== '' ? searchBy : 'name'}`">
+                        </div> -->
+                    </div>
+                    <div class="col-6 text-end">
+                        <button type="button" class="btn btn-info px-3 mx-2" style="color: white;" @click="exportPdf">PDF</button>
+                        <button type="button" class="btn btn-warning px-3" style="color: white;" @click="exportExcel">Excel</button>
+                    </div>
+                </div>
+                <div>
+                    <table
+                        id="loanSummaryTbl"
+                        class="table"
+                        style="width: 100%"
+                    >
+                        <thead>
+                            <tr>
+                                <th>No.</th>
+                                <th scope="col" v-for="(item, index) in headers" :key="index">
+                                    {{ item.label }}
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="(item, index) in listCashIn" :key="index">
+                                <th scope="row">{{ index + 1 }}</th>
+                                <td>1</td>
+                                <td>2024</td>
+                                <td>USD</td>
+                                <td>Hello</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
