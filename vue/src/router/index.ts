@@ -148,6 +148,14 @@ const routes = [
                 props: true,
             },
             {
+                path: "/cash-in",
+                name: "cash-in",
+                component: () =>
+                    import(
+                        /* webpackChunkName: "cash-in" */ "../views/cash_in/CashIn.vue"
+                    ),
+            },
+            {
                 path: "/req-cash",
                 name: "req-cash",
                 component: () =>
@@ -160,7 +168,7 @@ const routes = [
                 name: "req-expense",
                 component: () =>
                     import(
-                        /* webpackChunkName: "req-expense" */ "../views/reports/rep_exp/rep_exp.vue"
+                        /* webpackChunkName: "req-expense" */ "../views/reports/rep_exp/Rep_exp.vue"
                     ),
             },
         ],
