@@ -47,14 +47,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('expenses', [ExpenseController::class, 'index']);
     Route::post('expenses', [ExpenseController::class, 'store']);
     // CashIn
-    Route::get('expenses', [CashInController::class, 'index']);
-    Route::post('expenses', [CashInController::class, 'store']);
-    Route::post('expenses', [ExpenseController::class, 'store']);
+    Route::get('cashins', [CashInController::class, 'index']);
+    Route::post('cashins', [CashInController::class, 'store']);
     // CashIn
-    Route::get('expenses', [CashTransactionController::class, 'index']);
-    Route::post('expenses', [CashTransactionController::class, 'store']);
-    Route::put('expenses', [CashTransactionController::class, 'update']);
-    Route::get('expenses/{id}', [CashTransactionController::class, 'show']);
+    Route::get('cash_transaction', [CashTransactionController::class, 'index']);
+    Route::post('cash_transaction', [CashTransactionController::class, 'store']);
+    Route::put('cash_transaction/{id}', [CashTransactionController::class, 'update']);
 });
 
 Route::get('allcustomers', [CustomerController::class, 'getallcustomer']);

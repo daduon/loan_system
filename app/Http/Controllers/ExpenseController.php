@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\StatusCode;
 use App\Models\Expense;
 use App\Http\Controllers\Controller;
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -33,15 +34,20 @@ class ExpenseController extends Controller
      */
     public function store(Request $request)
     {
-        return Expense::create([
-            'expense_no' => $request->expense_no,
-            'expense_desc' => $request->expense_desc,
-            'expense_date' => $request->expense_date,
-            'expense_by' => $request->expense_by,
-            'expense_status' => StatusCode::ACTIVE->value,
-            'expense_amount_usd' => $request->expense_amount_usd,
-            'expense_amount_kh' => $request->expense_amount_kh
-        ]);
+        try {
+            return Expense::create([
+                'expense_no' => Carbon::now()->format('YmdHms'),
+                'expense_desc' => $request->expense_desc,
+                'expense_date' => Carbon::now()->format('Ymd'),
+                'expense_by' => $request->expense_by,
+                'expense_amount_usd' => $request->expense_amount_usd,
+                'expense_amount_kh' => $request->expense_amount_kh
+            ]);
+        } catch (Exception $e) {
+            return response([
+                'message' => $e->getMessage(),
+            ]);
+        }
     }
 
     /**
