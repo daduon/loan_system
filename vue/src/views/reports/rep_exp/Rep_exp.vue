@@ -4,6 +4,10 @@
 import { defineComponent } from "vue";
 import Loading from "../../../components/Loading.vue";
 import { exportExcel, exportPDF } from "../../../services/export";
+import { RequestService } from '../../../services/request-service';
+// import moment from 'moment';
+
+const requestService = new RequestService();
 
 export default defineComponent({
     name: "req-exp",
@@ -11,10 +15,10 @@ export default defineComponent({
         Loading,
     },
     data() {
-        const listCashIn = [] as any;
+        const expenseList = [] as any;
         const dataTable = [] as any[];
         return {
-            listCashIn,
+            expenseList,
             isLoading: false,
             dataTable,
             countOfPage: 10,
@@ -31,28 +35,48 @@ export default defineComponent({
         },
         headers() {
             return [
-                { label: "Title", prop: 'title' },
-                { label: "Expense By", prop: 'expenseBy' },
-                { label: "Date", prop: 'date' },
-                { label: "Amount", prop: 'amount' },
-                { label: "Currency", prop: 'currency' },
-                { label: "Description", prop: 'description' },
-                { label: "Status", prop: 'status' },
+                { label: "Title", prop: 'expense_no' },
+                { label: "Expense By", prop: 'expense_by' },
+                { label: "Expense Date", prop: 'expense_date' },
+                { label: "Amount (USD)", prop: 'expense_amount_usd' },
+                { label: "Amount (KH)", prop: 'expense_amount_kh' },
+                { label: "Description", prop: 'expense_desc' },
+                { label: "Status", prop: 'expense_status' },
             ];
         }
     },
 
     mounted() {
-        this.inquiryCashIn();
+        this.inquiryExpense();
     },
 
     methods: {
-        async inquiryCashIn() {
-            this.listCashIn = [];
+        async inquiryExpense() {
+            this.isLoading = true
+                  const res = await requestService.list('expenses');
+                  if (res.status === 200) {
+                      this.expenseList = this.mapData(res.data);
+                      this.isLoading = false
+                  }
+        },
+
+        mapData(list: any) {
+                return list.data.map((item: any) => {
+                    return {
+                            id: item.id,
+                            expense_no: item.expense_no,
+                            expense_by: item.expense_by,
+                            expense_date: item.expense_date,
+                            expense_amount_usd: item.expense_amount_usd,
+                            expense_amount_kh: item.expense_amount_kh,
+                            expense_desc: item.expense_desc,
+                            expense_status: item.expense_status == "01" ? "Active" : "Inactive",
+                    }
+                })
         },
 
         back() {
-            this.$router.push("/loan");
+            this.$router.push("/");
         },
 
         exportExcel() {
@@ -63,7 +87,7 @@ export default defineComponent({
                             dataKey: data.prop,
                         };
                 }),
-                body: this.listCashIn,
+                body: this.expenseList,
                 fileName: 'excelFile',
             };
             exportExcel(exportData);
@@ -77,7 +101,7 @@ export default defineComponent({
                             dataKey: data.prop,
                         };
                 }),
-                list: this.listCashIn,
+                list: this.expenseList,
                 fileName: 'pdfFile',
             };
             exportPDF(exportData);

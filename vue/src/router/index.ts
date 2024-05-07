@@ -156,6 +156,14 @@ const routes = [
                     ),
             },
             {
+                path: "/expense",
+                name: "expense",
+                component: () =>
+                    import(
+                        /* webpackChunkName: "expense" */ "../views/expense/Expense.vue"
+                    ),
+            },
+            {
                 path: "/req-cash",
                 name: "req-cash",
                 component: () =>

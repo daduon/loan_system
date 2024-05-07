@@ -32,8 +32,8 @@
                         </div> -->
                     </div>
                     <div class="col-6 text-end">
-                        <button type="button" class="btn btn-info px-3 mx-2" style="color: white;" @click="exportPdf">PDF</button>
-                        <button type="button" class="btn btn-warning px-3" style="color: white;" @click="exportExcel">Excel</button>
+                        <button type="button" class="btn btn-info mx-2" style="color: white;" @click="exportPdf"><i class="bi bi-file-pdf"></i></button>
+                        <button type="button" class="btn btn-warning" style="color: white;" @click="exportExcel"><i class="bi bi-filetype-exe"></i></button>
                     </div>
                 </div>
                 <div>
@@ -51,12 +51,15 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-for="(item, index) in listCashIn" :key="index">
+                            <tr v-for="(item, index) in expenseList" :key="index">
                                 <th scope="row">{{ index + 1 }}</th>
-                                <td>1</td>
-                                <td>2024</td>
-                                <td>USD</td>
-                                <td>Hello</td>
+                                <td>{{ item.expense_no }}</td>
+                                <td>{{ item.expense_by }}</td>
+                                <td>{{ item.expense_date }}</td>
+                                <td>{{ item.expense_amount_usd }}</td>
+                                <td>{{ item.expense_amount_kh }}</td>
+                                <td>{{ item.expense_desc }}</td>
+                                <td>{{ item.expense_status }}</td>
                             </tr>
                         </tbody>
                     </table>
