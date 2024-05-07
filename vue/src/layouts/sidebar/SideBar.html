@@ -25,6 +25,12 @@
             </router-link>
         </li>
         <li class="nav-item">
+            <router-link class="nav-link" :class="$route.path === '/cash-in' ? '' : 'collapsed'" to="/cash-in">
+                <i class="bi bi-bank"></i>
+                <span>Cash-In</span>
+            </router-link>
+        </li>
+        <li class="nav-item">
             <router-link class="nav-link" :class="$route.path === '/loan' ? '' : 'collapsed'" to="/loan">
                 <i class="bi bi-bank"></i>
                 <span>Loan</span>
