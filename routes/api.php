@@ -5,9 +5,12 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CompanyProfileController;
 use App\Http\Controllers\BorrowMasterController;
 use App\Http\Controllers\BorrowScheduleController;
+use App\Http\Controllers\CashInController;
+use App\Http\Controllers\CashTransactionController;
 use App\Http\Controllers\COEmployeeController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CustomerTypeController;
+use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\HolidayDateController;
 use App\Http\Controllers\SummaryController;
 
@@ -40,6 +43,18 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('customers_monthly/{month}', [CustomerController::class, 'customersMonthly']);
     // List COEmployee
     Route::resource('coemployees', COEmployeeController::class);
+    // Expense
+    Route::get('expenses', [ExpenseController::class, 'index']);
+    Route::post('expenses', [ExpenseController::class, 'store']);
+    // CashIn
+    Route::get('expenses', [CashInController::class, 'index']);
+    Route::post('expenses', [CashInController::class, 'store']);
+    Route::post('expenses', [ExpenseController::class, 'store']);
+    // CashIn
+    Route::get('expenses', [CashTransactionController::class, 'index']);
+    Route::post('expenses', [CashTransactionController::class, 'store']);
+    Route::put('expenses', [CashTransactionController::class, 'update']);
+    Route::get('expenses/{id}', [CashTransactionController::class, 'show']);
 });
 
 Route::get('allcustomers', [CustomerController::class, 'getallcustomer']);
