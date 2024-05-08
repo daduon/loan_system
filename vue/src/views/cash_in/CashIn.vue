@@ -4,127 +4,75 @@
 import { defineComponent } from "vue";
 import { RequestService } from '../../services/request-service';
 import { ToastService } from '../../services/toast';
-import moment from 'moment';
 
 const toastService = new ToastService();
 const requestService = new RequestService();
 
 export default defineComponent({
-      name: 'CashIn',
-      data() {
-            const holidayDateForm = {
-                  countrycode:'',
-                  basedate:'',
-                  holidaydate:'01'
-            } as any;
-            const holidayDateList = [
-                  {key: '01', value: 'Work day'},
-                  {key: '02', value: 'Holiday'},
-                  {key: '03', value: 'Saturday'},
-                  {key: '04', value: 'Sunday'}
-            ] as any;
-            const isLoading = false;
-            return {
-                  holidayDateForm,
-                  holidayDateList,
-                  isInvalide:false,
-                  textBreadcrumb:'',
-                  toastService,
-                  isLoading,
-                  test:new Date().toISOString().slice(0, 10)
+    name: 'CashIn',
+    data() {
+        const coemployees = [] as any;
+        const cashInForm = {
+            cashInAmountUSD: 0,
+            cashInAmountKHR: 0,
+            cashInUserId: '',
+            description: '',
+        }
+        return {
+            toastService,
+            coemployees,
+            coemployee_selected_id: "",
+            cashInForm,
+            loading: false,
+            isInvalide: false,
+        }
+    },
+
+    created() {
+        this.GetAllCOEmployee();
+    },
+
+    methods: {
+        handleSave() {
+            if (this.cashInForm.description === '' ||
+                this.coemployee_selected_id === '') {
+                this.isInvalide = true;
+                return;
             }
-      },
+            this.CreateCashIn();
+        },
+        GetAllCOEmployee() {
+            requestService.list("/coemployees").then((res: any) => {
+                this.coemployees = res.data.data;
+            });
+        },
+        GetCOEmployee() {
+            let coIndex = parseInt(this.coemployee_selected_id);
+            const co = this.coemployees[coIndex];
+            this.cashInForm.cashInUserId = co.id;
 
-      created() {
-            if(this.$route.params.type === 'edit'){
-                  this.handleDetail(this.$route.params.id);
-                  this.textBreadcrumb = 'Edit Holiday Date'
-            }else{
-                  this.textBreadcrumb = 'Create Holiday Date'
+        },
+
+        async CreateCashIn() {
+            this.loading = true;
+            const reqBody = {
+                cash_in_user_id: this.cashInForm.cashInUserId,
+                cash_in_amt_usd: this.cashInForm.cashInAmountUSD,
+                cash_in_amt_khr: this.cashInForm.cashInAmountKHR,
+                income_cash_in_usd: 0,
+                income_cash_in_kh: 0,
+                cash_in_desc: this.cashInForm.description,
             }
-
-            console.log('date',new Date().toISOString().slice(0, 10),)
-      },
-      
-      methods:{
-
-            handleSave(){
-                  if(
-                        this.holidayDateForm.countrycode === "" ||
-                        this.holidayDateForm.basedate === "" ||
-                        this.holidayDateForm.holidaydate === ""
-                  ){
-                        this.isInvalide = true;
-                        return;
-                  }
-
-                  if(this.$route.params.type === 'edit'){
-                        this.handleUpdate();
-                  }else{
-                        this.handleCreate();
-                  }
-
-            },
-
-            async handleCreate(){
-                  const body = {
-                        countrycode: this.holidayDateForm.countrycode,
-                        basedate: this.holidayDateForm.basedate.toString().replace(/-/g, ""),
-                        holidaydate: this.holidayDateForm.holidaydate
-                  }
-
-                this.isLoading = true;
-
-                await requestService.create('/holiday_dates', body).then(() => {
-                    this.isLoading = false;
-                    this.handleBack();
-                    toastService.toastMessage('success', 'Created Success');
-                }).catch((error: any) => {
-                    this.isLoading = false;
-                    toastService.toastMessage('error', 'Create failed', error.response.data.message);
-                })
-            },
-
-            async handleDetail(id:any){
-                  await requestService.detail(`/holiday_dates/${id}`).then((res) => {
-                        const baseDateFormat = moment(res.data.data.basedate, 'YYYYMMDD').format('YYYY-MM-DD');
-
-                        this.holidayDateForm = {
-                              countrycode: res.data.data.countrycode,
-                              basedate: baseDateFormat,
-                              holidaydate: res.data.data.holidaydate,
-                        }
-
-                 }).catch((error: any) => {
-                    toastService.toastMessage('error', 'Get holiday date failed', error.response.data.message);
-                })
-            },
-
-            async handleUpdate(){
-                  const id:any = this.$route.params.id;
-
-                  const body = {
-                        countrycode: this.holidayDateForm.countrycode,
-                        basedate: this.holidayDateForm.basedate.toString().replace(/-/g, ""),
-                        holidaydate: this.holidayDateForm.holidaydate
-                  }
-
-                  this.isLoading = true;
-
-                  await requestService.update(`/holiday_dates/${id}`, body).then(() => {
-                    this.isLoading = false;
-                    this.handleBack();
-                    toastService.toastMessage('success', 'Updated Success');
-                  }).catch((error: any) => {
-                    this.isLoading = false;
-                    toastService.toastMessage('error', 'Updated failed', error.response.data.message);
-                  })
-            },
-
-            handleBack(){
-                  this.$router.push('/holiday-date')
-            }
-      }
+            this.loading = true;
+            await requestService.create("/cashins", reqBody).then(() => {
+                this.loading = false;
+                toastService.toastMessage('success', 'Cash In Successfully!');
+            }).catch(() => {
+                this.loading = false;
+                toastService.toastMessage('error', 'Cash In failed');
+            })
+        }
+    }
 })
 </script>
 <style scoped>
@@ -133,6 +81,7 @@ export default defineComponent({
     align-items: center;
     justify-content: center;
 }
+
 .loader {
     width: 20px;
     height: 20px;
@@ -143,12 +92,13 @@ export default defineComponent({
     box-sizing: border-box;
     animation: rotation 1s linear infinite;
     margin-right: 10px;
-    }
+}
 
-    @keyframes rotation {
+@keyframes rotation {
     0% {
         transform: rotate(0deg);
     }
+
     100% {
         transform: rotate(360deg);
     }
