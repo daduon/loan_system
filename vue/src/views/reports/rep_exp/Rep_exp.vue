@@ -35,7 +35,7 @@ export default defineComponent({
         },
         headers() {
             return [
-                { label: "Title", prop: 'expense_no' },
+                // { label: "Title", prop: 'expense_no' },
                 { label: "Expense By", prop: 'expense_by' },
                 { label: "Expense Date", prop: 'expense_date' },
                 { label: "Amount (USD)", prop: 'expense_amount_usd' },
