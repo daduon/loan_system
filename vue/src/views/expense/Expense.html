@@ -13,40 +13,37 @@
         <div class="card">
             <div class="card-body p-5">
                 <div class="row mb-4">
-                    <div class="col-lg-4">
+                    <!-- <div class="col-lg-6">
                         <label class="form-label">Base Date</label>
                         <input type="date" class="form-control" v-model="expense.expense_date" />
                         <div v-if="isInvalide && !expense.expense_date" class="invalid">Date is require</div>
-                    </div>
-                    <div class="col-lg-4">
-                        <label class="form-label">Admin</label>
+                    </div> -->
+                    <div class="col-lg-6">
+                        <label class="form-label">Expense User</label>
                         <select class="form-select" v-model="expense.expense_by">
-                            <option selected value="admin">Admin</option>
+                            <option disabled selected value="">Expense user</option>
+                            <option v-for="(item,index) in coemployees" :key="index" :value="item.id">
+                                {{item.id}} - {{item.name}}
+                            </option>
                         </select>
-                    </div>
-                    <div class="col-lg-4">
-                        <label class="form-label">Status</label>
-                        <select class="form-select" v-model="expense.expense_status">
-                            <option value="01">Active</option>
-                            <option value="02">Inactive</option>
-                        </select>
+                        <div v-if="isInvalide && !expense.expense_by" class="invalid">Expense user is required</div>
                     </div>
                 </div>
                 <div class="row mb-4">
                     <div class="col-lg-6">
                         <label class="form-label">Amount (USD)</label>
                         <input type="number" class="form-control" autofocus v-model="expense.expense_amount_usd" step=".01" min="0" />
-                        <div v-if="isInvalide && expense.expense_amount_usd == 0" class="invalid">The amount is require</div>
                     </div>
                     <div class="col-lg-6">
-                        <label class="form-label">Amount (KH)</label>
+                        <label class="form-label">Amount (KHR)</label>
                         <input type="number" class="form-control" autofocus v-model="expense.expense_amount_kh" step=".01" min="0" />
-                        <div v-if="isInvalide && expense.expense_amount_kh == 0" class="invalid">The amount is require</div>
                     </div>
                 </div>
                 <div class="row mb-4">
                     <div class="col-lg-12">
+                        <label class="form-label">Description</label>
                         <textarea v-model="expense.expense_desc" class="form-control" rows="3" style="resize: none"></textarea>
+                        <div v-if="isInvalide && !expense.expense_desc" class="invalid">Description is required</div>
                     </div>
                 </div>
                 <div class="d-flex">

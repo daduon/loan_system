@@ -67,8 +67,8 @@ export default defineComponent({
                             expense_no: item.expense_no,
                             expense_by: item.expense_by,
                             expense_date: item.expense_date,
-                            expense_amount_usd: item.expense_amount_usd,
-                            expense_amount_kh: item.expense_amount_kh,
+                            expense_amount_usd: this.formatCurrency(item.expense_amount_usd),
+                            expense_amount_kh: this.formatCurrencyKHR(item.expense_amount_kh),
                             expense_desc: item.expense_desc,
                             expense_status: item.expense_status == "01" ? "Active" : "Inactive",
                     }
@@ -107,8 +107,13 @@ export default defineComponent({
             exportPDF(exportData);
         },
 
-        formatCurrency(amount:any): string {
+        formatCurrency(amount: any): string {
             const val = (Math.floor(amount * 100000) / 100000).toFixed(2)
+            return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        },
+        
+        formatCurrencyKHR(amount: any): string {
+            const val = (Math.floor(amount * 100000) / 100000)
             return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
         },
     },
