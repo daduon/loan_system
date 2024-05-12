@@ -151,7 +151,6 @@ export default defineComponent({
                                 cash_in_user_id: res.data.borrowScheduleData.coemployeeid,
                                 income_cash_in_usd: currencyCode == 'USD' ? amount : 0,
                                 income_cash_in_kh: currencyCode == 'KHR' ? amount : 0,
-                                cash_in_desc: "From Loan",
                             }
                             console.log(currencyCode);
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\CashTransactionType;
 use App\Enums\StatusCode;
 use App\Models\CashIn;
 use App\Http\Controllers\Controller;
@@ -38,17 +39,18 @@ class CashInController extends Controller
      */
     public function store(Request $request)
     {
+        $descExisted = $request->cash_in_desc;
         DB::beginTransaction();
         try {
             $dateCreated = Carbon::now()->format('Ymd');
             $cashIn = new CashIn();
             $cashIn->cash_in_user_id = $request->cash_in_user_id;
-            $cashIn->cash_in_amt_usd = $request->cash_in_amt_usd;
-            $cashIn->cash_in_amt_khr = $request->cash_in_amt_khr;
-            $cashIn->income_cash_in_usd = $request->income_cash_in_usd;
-            $cashIn->income_cash_in_kh = $request->income_cash_in_kh;
+            $cashIn->cash_in_amt_usd = $request->cash_in_amt_usd ?? 0;
+            $cashIn->cash_in_amt_khr = $request->cash_in_amt_khr ?? 0;
+            $cashIn->income_cash_in_usd = $request->income_cash_in_usd ?? 0;
+            $cashIn->income_cash_in_kh = $request->income_cash_in_kh ?? 0;
             $cashIn->cash_in_date = $dateCreated;
-            $cashIn->cash_in_desc = $request->cash_in_desc;
+            $cashIn->cash_in_desc = $request->cash_in_desc ?? CashTransactionType::LOAN->value;
             $cashIn->save();
 
             $amountUSD = $cashIn->cash_in_amt_usd + $cashIn->income_cash_in_usd;
