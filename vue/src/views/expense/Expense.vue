@@ -18,7 +18,7 @@ export default defineComponent({
                 expense_no: '',
                 expense_desc: '',
                 expense_date: '',
-                expense_by: 'admin',
+                expense_by: '',
                 expense_status: '01',
                 expense_amount_usd: 0,
                 expense_amount_kh: 0
@@ -48,7 +48,7 @@ export default defineComponent({
             this.isLoading = true;
             const res = await requestService.list(`/cash_transaction`);
             if (res.status === 200) {
-                this.totalCash.cash_total_usd = res.data.data[0].cash_total_usd;
+                this.totalCash.cash_total_usd = parseFloat(res.data.data[0].cash_total_usd);
                 this.totalCash.cash_total_kh = res.data.data[0].cash_total_kh;
             }
             this.isLoading = false;
@@ -56,7 +56,7 @@ export default defineComponent({
 
         async handleSave() {
 
-            if(this.expense.expense_date == '' || this.expense.expense_by == ''){
+            if(this.expense.expense_by == '' || this.expense.expense_desc == ''){
                 this.isInvalide = true;
                 return;
             }
@@ -64,15 +64,16 @@ export default defineComponent({
                 toastService.toastMessage('error', 'The amount is required');
                 return
             }
-
+            
             if(this.expense.expense_amount_usd != 0  || this.expense.expense_amount_kh != 0){
-                if(this.expense.expense_amount_usd < this.totalCash.cash_total_usd){
-                    toastService.toastMessage('error', 'Your cash not enough');
+                if(this.expense.expense_amount_usd > this.totalCash.cash_total_usd){
+                    console.log('test',this.totalCash.cash_total_usd)
+                    toastService.toastMessage('error', 'Your cash not enough (USD)');
                     return
                 }
 
-                if(this.expense.expense_amount_kh < this.totalCash.cash_total_kh){
-                    toastService.toastMessage('error', 'Your cash not enough');
+                if(this.expense.expense_amount_kh > this.totalCash.cash_total_kh){
+                    toastService.toastMessage('error', 'Your cash not enough (KH)');
                     return
                 }
             }
