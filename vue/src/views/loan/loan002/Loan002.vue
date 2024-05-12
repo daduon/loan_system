@@ -45,7 +45,11 @@ export default defineComponent({
             isInvalide: false,
             countDay: 0,
             countDayOfMonth: 0,
-            oldType: '00'
+            oldType: '00',
+            totalCash:{
+                cash_total_usd: 0,
+                cash_total_kh: 0
+            },
         };
     },
     watch: {
@@ -85,8 +89,17 @@ export default defineComponent({
     created() {
         this.GetAllCustomer();
         this.GetAllCOEmployee();
+        this.getTotalCash();
     },
     methods: {
+        async getTotalCash(){
+            const res = await requestService.list(`/cash_transaction`);
+            if (res.status == 200) {
+                this.totalCash.cash_total_usd = parseFloat(res.data.data[0].cash_total_usd);
+                this.totalCash.cash_total_kh = res.data.data[0].cash_total_kh;
+            }
+        },
+
         dayDiff(startDate: any, endDate: any) {
             if (!(startDate) || !(endDate)) {
                 throw new Error('Both arguments must be Date objects');
@@ -190,6 +203,20 @@ export default defineComponent({
                     new Date(this.mDate.toString())
                 ),
             };
+
+            if(this.currency == 'USD'){
+                if(parseFloat(this.loan_amount) > this.totalCash.cash_total_usd){
+                    toastService.toastMessage('error', 'Your cash not enough (USD)');
+                    return
+                }
+            }
+
+            if(this.currency == 'KHR'){
+                if(parseFloat(this.loan_amount) > this.totalCash.cash_total_usd){
+                    toastService.toastMessage('error', 'Your cash not enough (KHR)');
+                    return
+                }
+            }
 
             if (this.customerId == "" || this.loan_amount == "0" || this.coEmployeeId == "") {
                 this.isInvalide = true;

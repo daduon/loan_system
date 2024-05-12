@@ -73,7 +73,7 @@ export default defineComponent({
                 }
 
                 if(this.expense.expense_amount_kh > this.totalCash.cash_total_kh){
-                    toastService.toastMessage('error', 'Your cash not enough (KH)');
+                    toastService.toastMessage('error', 'Your cash not enough (KHR)');
                     return
                 }
             }
