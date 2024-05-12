@@ -27,6 +27,10 @@ export default defineComponent({
             currPage: 1,
             countOfPage: 10,
             selectedMonth: '',
+            totalCash:{
+                cash_total_usd: '',
+                cash_total_kh: ''
+            }
         };
     },
 
@@ -46,7 +50,8 @@ export default defineComponent({
 
         totalPage() {
             return Math.ceil(this.customersMonthly.length / this.countOfPage);
-        },
+        }
+
     },
 
     watch: {
@@ -57,6 +62,7 @@ export default defineComponent({
 
     created() {
         this.countCustomerBorrow();
+        this.getTotalCash();
         const currentDate = new Date();
         const year = currentDate.getFullYear();
         const month = String(currentDate.getMonth() + 1).padStart(2, '0');
@@ -64,6 +70,26 @@ export default defineComponent({
     },
 
     methods: {
+        formatCurrency(amount: any): string {
+            const val = (Math.floor(amount * 100000) / 100000).toFixed(2)
+            return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        },
+        
+        formatCurrencyKHR(amount: any): string {
+            const val = (Math.floor(amount * 100000) / 100000)
+            return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        },
+
+        async getTotalCash(){
+            this.isLoading = true;
+            const res = await requestService.list(`/cash_transaction`);
+            if (res.status === 200) {
+                this.totalCash.cash_total_usd = this.formatCurrency(res.data.data[0].cash_total_usd);
+                this.totalCash.cash_total_kh = this.formatCurrencyKHR(res.data.data[0].cash_total_kh);
+            }
+            this.isLoading = false;
+        },
+
         async countCustomerBorrow() {
             this.isLoading = true;
             const res = await requestService.list(`/retriveborrower`);
