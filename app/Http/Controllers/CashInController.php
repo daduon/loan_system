@@ -55,14 +55,14 @@ class CashInController extends Controller
 
             if ($cashinTotal->isEmpty()) {
                 $cashTrnscnt = new CashTransaction();
-                $cashTrnscnt->cash_total_us = $cashIn->cash_in_amt_usd;
+                $cashTrnscnt->cash_total_usd = $cashIn->cash_in_amt_usd;
                 $cashTrnscnt->cash_total_kh = $cashIn->cash_in_amt_khr;
                 $cashTrnscnt->date = $dateCreated;
                 $cashTrnscnt->cash_in_desc = $cashIn->cash_in_desc;
                 $cashTrnscnt->save();
             } else {
                 $cashTrnscnt = CashTransaction::find($cashinTotal->get(0)->id);
-                $cashTrnscnt->cash_total_us += $cashIn->cash_in_amt_usd;
+                $cashTrnscnt->cash_total_usd += $cashIn->cash_in_amt_usd;
                 $cashTrnscnt->cash_total_kh += $cashIn->cash_in_amt_khr;
                 $cashTrnscnt->date = $dateCreated;
                 $cashTrnscnt->cash_in_desc = $cashIn->cash_in_desc;
