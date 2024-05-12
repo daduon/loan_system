@@ -25,14 +25,14 @@ export default defineComponent({
             countOfPage: 10,
             currPage: 1,
             searchBy: ['customername'],
-            search:'',
+            search: '',
             companyName: "",
             companyImage: "",
         };
     },
     computed: {
         dateFormat() {
-            return (date:String) =>(date.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3'));
+            return (date: String) => (date.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3'));
         },
         headers() {
             return [
@@ -46,23 +46,23 @@ export default defineComponent({
         },
 
         pageStart() {
-                  return (this.currPage - 1) * this.countOfPage;
-        },
-        
-        totalPage() {
-                return Math.ceil(this.borrowerScheduleList.length / this.countOfPage);
+            return (this.currPage - 1) * this.countOfPage;
         },
 
-        dataGrid(){
-                
-                if (this.search.length == 0) {
-                    this.dataTable = this.borrowerScheduleList
-                }
-                this.dataTable = this.borrowerScheduleList.filter((data:any) => !this.search || this.searchBy.some((item:any) => data[item].toString().toLowerCase().includes(this.search.toLowerCase())))
-                // this.dataTable.forEach((item) => {
-                //     item.payment = 
-                // })
-                return this.dataTable;
+        totalPage() {
+            return Math.ceil(this.borrowerScheduleList.length / this.countOfPage);
+        },
+
+        dataGrid() {
+
+            if (this.search.length == 0) {
+                this.dataTable = this.borrowerScheduleList
+            }
+            this.dataTable = this.borrowerScheduleList.filter((data: any) => !this.search || this.searchBy.some((item: any) => data[item].toString().toLowerCase().includes(this.search.toLowerCase())))
+            // this.dataTable.forEach((item) => {
+            //     item.payment =
+            // })
+            return this.dataTable;
         }
     },
 
@@ -93,23 +93,23 @@ export default defineComponent({
         exportExcel() {
             const exportData = {
                 columns: this.headers.map((data: any) => {
-                        return {
-                            header: data.label,
-                            dataKey: data.prop,
-                        };
+                    return {
+                        header: data.label,
+                        dataKey: data.prop,
+                    };
                 }),
                 body: this.dataGrid,
                 fileName: 'excelFile',
             };
             exportExcel(exportData);
         },
-        exportPdf(){
-            const exportData:any = {
+        exportPdf() {
+            const exportData: any = {
                 headerList: this.headers.map((data: any) => {
-                        return {
-                            header: data.label,
-                            dataKey: data.prop,
-                        };
+                    return {
+                        header: data.label,
+                        dataKey: data.prop,
+                    };
                 }),
                 list: this.dataGrid,
                 fileName: 'pdfFile',
@@ -197,12 +197,12 @@ export default defineComponent({
         },
 
         setPage(data: any) {
-                if (data <= 0 || data > this.totalPage) {
-                    return;
-                }
-                this.currPage = data;
+            if (data <= 0 || data > this.totalPage) {
+                return;
+            }
+            this.currPage = data;
         },
-        formatCurrency(amount:any): string {
+        formatCurrency(amount: any): string {
             const val = (Math.floor(amount * 100000) / 100000).toFixed(2)
             return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
         },

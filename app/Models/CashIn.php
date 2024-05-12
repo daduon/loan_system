@@ -18,5 +18,12 @@ class CashIn extends Model
         'income_cash_in_kh',
         'cash_in_date',
         'cash_in_status',
-        'cash_in_desc'];
+        'cash_in_desc'
+    ];
+
+    public function getUserName()
+    {
+        $userName = COEmployee::find($this->cash_in_user_id);
+        return $userName ? $userName->name : "";
+    }
 }

@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class ExpenseController extends Controller
 {
@@ -34,16 +35,21 @@ class ExpenseController extends Controller
      */
     public function store(Request $request)
     {
+        DB::beginTransaction();
         try {
+            $dateCreated = Carbon::now()->format('Ymd');
+            $expenseNo = Carbon::now()->format('YmdHms');
             return Expense::create([
-                'expense_no' => Carbon::now()->format('YmdHms'),
+                'expense_no' => $expenseNo,
                 'expense_desc' => $request->expense_desc,
-                'expense_date' => Carbon::now()->format('Ymd'),
+                'expense_date' => $dateCreated,
                 'expense_by' => $request->expense_by,
                 'expense_amount_usd' => $request->expense_amount_usd,
                 'expense_amount_kh' => $request->expense_amount_kh
             ]);
+            DB::commit();
         } catch (Exception $e) {
+            DB::rollBack();
             return response([
                 'message' => $e->getMessage(),
             ]);

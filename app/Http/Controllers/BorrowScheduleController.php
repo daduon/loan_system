@@ -2,21 +2,22 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Routing\Controller;
 
+use function Laravel\Prompts\error;
+
 class BorrowScheduleController extends Controller
 {
-    public function updatePaidLoan($id , $brid ,$seq)
+    public function updatePaidLoan($id, $brid, $seq)
     {
         try {
-            if ($seq!=1)  {
-                $seqNo =$seq -1; 
+            if ($seq != 1) {
+                $seqNo = $seq - 1;
                 // dd($seqNo);
-            $validatePaid = DB::select("
-                SELECT 
-                CASE 
+                $validatePaid = DB::select("
+                SELECT
+                CASE
                     WHEN  B.SCHEDULESTATUSCODE =0 THEN 'N'
                     ELSE 'Y'
                 END AS isenable
@@ -25,45 +26,46 @@ class BorrowScheduleController extends Controller
                 WHERE A.ID = '$brid'
                 AND B.SCHEDULESEQNO =$seqNo
             ");
-            // dd($validatePaid);
-            foreach($validatePaid as $key) {
-                if($key->isenable ==='N') {
-                    // dd($key->isenable);
-                    return response()->json(array(
-                        'message' => 'N'
-                    ), 200);
-                }
-                            };
-        }
-            
+                // dd($validatePaid);
+                foreach ($validatePaid as $key) {
+                    if ($key->isenable === 'N') {
+                        // dd($key->isenable);
+                        return response()->json(array(
+                            'message' => 'N'
+                        ), 200);
+                    }
+                };
+            }
+
             DB::update('UPDATE borrow_schedules SET "schedulestatuscode" = 1 WHERE id =\'' . $id . '\'');
-            
+
 
             $check = DB::select("
-            SELECT  
-                    CASE 
+            SELECT
+                    CASE
                         WHEN B.SCHEDULESTATUSCODE = '1' THEN 'Y'
                         ELSE 'N'
                     END AS  isPaid
             FROM BORROW_MASTERS A
-                INNER JOIN BORROW_SCHEDULES B ON A.ID = B.BORROWING_ID 
+                INNER JOIN BORROW_SCHEDULES B ON A.ID = B.BORROWING_ID
                     WHERE A.ID ='$brid'
             ");
-            
-            foreach($check as $key) {
-                if($key->ispaid ==='N') {
-                    
+
+            foreach ($check as $key) {
+                if ($key->ispaid === 'N') {
+
                     return response()->json(array(
-                        'message' => 'Success'
+                        'message' => 'Success',
+                        'borrowScheduleData' => $this->getBorrowScheduleData($id, $brid, $seq),
                     ), 200);
                 }
-
             };
 
             DB::update('UPDATE BORROW_MASTERS SET "ispaid" = 1 WHERE id =\'' . $brid . '\'');
 
             return response()->json(array(
-                'message' => 'Success'
+                'message' => 'Success',
+                'borrowScheduleData' => $this->getBorrowScheduleData($id, $brid, $seq),
             ), 200);
         } catch (\Throwable $th) {
             return response()->json(array(
@@ -88,4 +90,19 @@ class BorrowScheduleController extends Controller
         }
     }
 
+    private function getBorrowScheduleData($id, $brid, $seq)
+    {
+        $results = DB::select("
+        SELECT
+               B.COEMPLOYEE_ID                                         AS coemployeeid
+             , C.TRANSACTIONPRINCIPAL 								   AS transactionPrincipal
+             , B.CURRENCYCODE                                          AS currencyCode
+         FROM BORROW_MASTERS AS B
+        INNER JOIN BORROW_SCHEDULES AS C ON B.ID = C.BORROWING_ID
+        WHERE B.ID = '$brid'
+          AND C.ID = '$id'
+          AND C.SCHEDULESEQNO = '$seq'");
+
+        return $results;
+    }
 }

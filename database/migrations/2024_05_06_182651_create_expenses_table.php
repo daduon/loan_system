@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\CashTransactionType;
 use App\Enums\StatusCode;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -15,7 +16,7 @@ return new class extends Migration
         Schema::create('expenses', function (Blueprint $table) {
             $table->id();
             $table->string('expense_no');
-            $table->text('expense_desc');
+            $table->text('expense_desc')->nullable()->default(CashTransactionType::LOAN->value);
             $table->string('expense_date');
             $table->string('expense_by');
             $table->string('expense_status', 2)->default(StatusCode::ACTIVE->value);

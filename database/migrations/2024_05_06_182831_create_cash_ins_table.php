@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\CashTransactionType;
 use App\Enums\StatusCode;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -21,7 +22,7 @@ return new class extends Migration
             $table->bigInteger('income_cash_in_kh')->unsigned()->nullable()->default(0);
             $table->string('cash_in_date');
             $table->string('cash_in_status', 2)->default(StatusCode::ACTIVE->value);
-            $table->text('cash_in_desc');
+            $table->text('cash_in_desc')->nullable()->default(CashTransactionType::LOAN->value);
             $table->timestamps();
         });
     }

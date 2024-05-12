@@ -4,7 +4,9 @@
 import { defineComponent } from "vue";
 import Loading from "../../../components/Loading.vue";
 import { exportExcel, exportPDF } from "../../../services/export";
+import { RequestService } from '../../../services/request-service';
 
+const requestService = new RequestService();
 export default defineComponent({
     name: "req-cash",
     components: {
@@ -20,24 +22,24 @@ export default defineComponent({
             countOfPage: 10,
             currPage: 1,
             searchBy: ['customername'],
-            search:'',
+            search: '',
             companyName: "",
             companyImage: "",
         };
     },
     computed: {
         dateFormat() {
-            return (date:String) =>(date.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3'));
+            return (date: String) => (date.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3'));
         },
         headers() {
             return [
-                { label: "Title", prop: 'title' },
-                { label: "Expense By", prop: 'expenseBy' },
-                { label: "Date", prop: 'date' },
-                { label: "Amount", prop: 'amount' },
-                { label: "Currency", prop: 'currency' },
-                { label: "Description", prop: 'description' },
-                { label: "Status", prop: 'status' },
+                { label: "Cash In By", prop: 'cash_in_user_name' },
+                { label: "Cash In USD", prop: 'cash_in_amt_usd' },
+                { label: "Cash In KHR", prop: 'cash_in_amt_khr' },
+                // { label: "Income USD", prop: 'income_cash_in_usd' },
+                // { label: "Income KHR", prop: 'income_cash_in_kh' },
+                { label: "Date", prop: 'cash_in_date' },
+                { label: "Description", prop: 'cash_in_desc' },
             ];
         }
     },
@@ -48,7 +50,27 @@ export default defineComponent({
 
     methods: {
         async inquiryCashIn() {
-            this.listCashIn = [];
+            this.isLoading = true
+            const res = await requestService.list('cashins');
+            if (res.status === 200) {
+                this.listCashIn = this.mapData(res.data);
+                this.isLoading = false
+            }
+        },
+
+        mapData(list: any) {
+            return list.data.map((item: any) => {
+                return {
+                    id: item.id,
+                    cash_in_user_name: item.cash_in_user_name,
+                    cash_in_amt_usd: this.formatCurrency(item.cash_in_amt_usd),
+                    cash_in_amt_khr: this.formatCurrencyKHR(item.cash_in_amt_khr),
+                    // income_cash_in_usd: this.formatCurrency(item.income_cash_in_usd),
+                    // income_cash_in_kh: this.formatCurrencyKHR(item.income_cash_in_kh),
+                    cash_in_date: this.dateFormat(item.cash_in_date),
+                    cash_in_desc: item.cash_in_desc,
+                }
+            })
         },
 
         back() {
@@ -58,10 +80,10 @@ export default defineComponent({
         exportExcel() {
             const exportData = {
                 columns: this.headers.map((data: any) => {
-                        return {
-                            header: data.label,
-                            dataKey: data.prop,
-                        };
+                    return {
+                        header: data.label,
+                        dataKey: data.prop,
+                    };
                 }),
                 body: this.listCashIn,
                 fileName: 'excelFile',
@@ -69,13 +91,13 @@ export default defineComponent({
             exportExcel(exportData);
         },
 
-        exportPdf(){
-            const exportData:any = {
+        exportPdf() {
+            const exportData: any = {
                 headerList: this.headers.map((data: any) => {
-                        return {
-                            header: data.label,
-                            dataKey: data.prop,
-                        };
+                    return {
+                        header: data.label,
+                        dataKey: data.prop,
+                    };
                 }),
                 list: this.listCashIn,
                 fileName: 'pdfFile',
@@ -83,8 +105,12 @@ export default defineComponent({
             exportPDF(exportData);
         },
 
-        formatCurrency(amount:any): string {
+        formatCurrency(amount: any): string {
             const val = (Math.floor(amount * 100000) / 100000).toFixed(2)
+            return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        },
+        formatCurrencyKHR(amount: any): string {
+            const val = (Math.floor(amount * 100000) / 100000)
             return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
         },
     },

@@ -53,10 +53,13 @@
                         <tbody>
                             <tr v-for="(item, index) in listCashIn" :key="index">
                                 <th scope="row">{{ index + 1 }}</th>
-                                <td>1</td>
-                                <td>2024</td>
-                                <td>USD</td>
-                                <td>Hello</td>
+                                <td>{{ item.cash_in_user_name }}</td>
+                                <td>{{ item.cash_in_amt_usd }}</td>
+                                <td>{{ item.cash_in_amt_khr }}</td>
+                                <!-- <td>{{ item.income_cash_in_usd }}</td>
+                                <td>{{ item.income_cash_in_kh }}</td> -->
+                                <td>{{ item.cash_in_date }}</td>
+                                <td>{{ item.cash_in_desc }}</td>
                             </tr>
                         </tbody>
                     </table>
