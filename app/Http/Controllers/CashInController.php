@@ -51,19 +51,22 @@ class CashInController extends Controller
             $cashIn->cash_in_desc = $request->cash_in_desc;
             $cashIn->save();
 
+            $amountUSD = $cashIn->cash_in_amt_usd + $cashIn->income_cash_in_usd;
+            $amountKHR = $cashIn->cash_in_amt_khr + $cashIn->income_cash_in_kh;
+
             $cashinTotal = CashTransaction::get();
 
             if ($cashinTotal->isEmpty()) {
                 $cashTrnscnt = new CashTransaction();
-                $cashTrnscnt->cash_total_usd = $cashIn->cash_in_amt_usd;
-                $cashTrnscnt->cash_total_kh = $cashIn->cash_in_amt_khr;
+                $cashTrnscnt->cash_total_usd = $amountUSD;
+                $cashTrnscnt->cash_total_kh = $amountKHR;
                 $cashTrnscnt->date = $dateCreated;
                 $cashTrnscnt->cash_in_desc = $cashIn->cash_in_desc;
                 $cashTrnscnt->save();
             } else {
                 $cashTrnscnt = CashTransaction::find($cashinTotal->get(0)->id);
-                $cashTrnscnt->cash_total_usd += $cashIn->cash_in_amt_usd;
-                $cashTrnscnt->cash_total_kh += $cashIn->cash_in_amt_khr;
+                $cashTrnscnt->cash_total_usd += $amountUSD;
+                $cashTrnscnt->cash_total_kh += $amountKHR;
                 $cashTrnscnt->date = $dateCreated;
                 $cashTrnscnt->cash_in_desc = $cashIn->cash_in_desc;
                 $cashTrnscnt->save();

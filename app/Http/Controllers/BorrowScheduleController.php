@@ -92,10 +92,10 @@ class BorrowScheduleController extends Controller
 
     private function getBorrowScheduleData($id, $brid, $seq)
     {
-        $results = DB::select("
+        $results = DB::selectOne("
         SELECT
                B.COEMPLOYEE_ID                                         AS coemployeeid
-             , C.TRANSACTIONPRINCIPAL 								   AS transactionPrincipal
+             , C.REPAYPRINCIPAL 								       AS repayprincipal
              , B.CURRENCYCODE                                          AS currencyCode
          FROM BORROW_MASTERS AS B
         INNER JOIN BORROW_SCHEDULES AS C ON B.ID = C.BORROWING_ID

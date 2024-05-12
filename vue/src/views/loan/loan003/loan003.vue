@@ -145,6 +145,24 @@ export default defineComponent({
                     if (res.status === 200) {
                         if (res.data.message != "N") {
                             this.borrowerSchedule();
+                            const amount = res.data.borrowScheduleData.repayprincipal;
+                            const currencyCode = res.data.borrowScheduleData.currencycode;
+                            const reqBody = {
+                                cash_in_user_id: res.data.borrowScheduleData.coemployeeid,
+                                income_cash_in_usd: currencyCode == 'USD' ? amount : 0,
+                                income_cash_in_kh: currencyCode == 'KHR' ? amount : 0,
+                                cash_in_desc: "From Loan",
+                            }
+                            console.log(currencyCode);
+
+                            await requestService.create("cashins", reqBody).then(res => {
+                                console.log(res);
+                                // toastService.toastMessage('success', 'Cash In Successfully!');
+                            }).catch(err => {
+                                console.log(err);
+
+                                // toastService.toastMessage('error', 'Cash In failed', err.response.data.message);
+                            })
                             Toast.fire({
                                 icon: "success",
                                 title: "Success",
