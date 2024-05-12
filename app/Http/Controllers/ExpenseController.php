@@ -52,7 +52,7 @@ class ExpenseController extends Controller
             DB::rollBack();
             return response([
                 'message' => $e->getMessage(),
-            ]);
+            ], 500);
         }
     }
 

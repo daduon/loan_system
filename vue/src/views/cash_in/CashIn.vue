@@ -59,8 +59,6 @@ export default defineComponent({
                 cash_in_user_id: this.cashInForm.cashInUserId,
                 cash_in_amt_usd: this.cashInForm.cashInAmountUSD,
                 cash_in_amt_khr: this.cashInForm.cashInAmountKHR,
-                income_cash_in_usd: 0,
-                income_cash_in_kh: 0,
                 cash_in_desc: this.cashInForm.description,
             }
             this.loading = true;
