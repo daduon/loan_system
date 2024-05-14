@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\StatusCode;
+use App\Enums\CashTransactionType;
 use App\Models\Expense;
 use App\Http\Controllers\Controller;
+use App\Models\CashTransaction;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class ExpenseController extends Controller
@@ -39,15 +39,40 @@ class ExpenseController extends Controller
         try {
             $dateCreated = Carbon::now()->format('Ymd');
             $expenseNo = Carbon::now()->format('YmdHms');
-            return Expense::create([
-                'expense_no' => $expenseNo,
-                'expense_desc' => $request->expense_desc,
-                'expense_date' => $dateCreated,
-                'expense_by' => $request->expense_by,
-                'expense_amount_usd' => $request->expense_amount_usd,
-                'expense_amount_kh' => $request->expense_amount_kh
-            ]);
+
+            $expense = new Expense();
+            $expense->expense_no = $expenseNo;
+            $expense->expense_desc = $request->expense_desc ?? CashTransactionType::OTHER->value;
+            $expense->expense_date = $dateCreated;
+            $expense->expense_by = $request->expense_by;
+            $expense->expense_amount_usd = $request->expense_amount_usd;
+            $expense->expense_amount_kh = $request->expense_amount_kh;
+            $expense->save();
+
+            $amountUSD = $expense->expense_amount_usd;
+            $amountKHR = $expense->expense_amount_kh;
+
+            $cashinTotal = CashTransaction::get();
+
+            if ($cashinTotal->isEmpty()) {
+                throw new Exception('Please insert some cash to make your transaction!', 500);
+            } else {
+                $cashTrnscnt = CashTransaction::find($cashinTotal->get(0)->id);
+                $totalUSD = $cashTrnscnt->cash_total_usd;
+                $totalKHR = $cashTrnscnt->cash_total_kh;
+                $this->handleTransactionUSD($amountUSD, $totalUSD);
+                $this->handleTransactionKHR($amountKHR, $totalKHR);
+
+                $cashTrnscnt->update([
+                    'cash_total_usd' => $totalUSD -= $amountUSD,
+                    'cash_total_kh' => $totalKHR -= $amountKHR,
+                    'date' => $dateCreated,
+                    'cash_in_desc' => $expense->expense_desc,
+                ]);
+            }
+
             DB::commit();
+            return $expense;
         } catch (Exception $e) {
             DB::rollBack();
             return response([
@@ -78,5 +103,27 @@ class ExpenseController extends Controller
     public function destroy(Expense $expense)
     {
         //
+    }
+
+    private function handleTransactionUSD($amountUSD, $totalUSD)
+    {
+        if ($amountUSD > 0) {
+            if ($totalUSD == 0) {
+                throw new Exception('Please insert some cash USD to make your transaction!', 500);
+            } else if ($totalUSD < $amountUSD) {
+                throw new Exception('Your cash USD is not enough to make your transaction!', 500);
+            }
+        }
+    }
+
+    private function handleTransactionKHR($amountKHR, $totalKHR)
+    {
+        if ($amountKHR > 0) {
+            if ($totalKHR == 0) {
+                throw new Exception('Your cash USD is not enough to make your transaction!', 500);
+            } else if ($totalKHR < $amountKHR) {
+                throw new Exception('Your cash KHR is not enough to make your transaction!', 500);
+            }
+        }
     }
 }
