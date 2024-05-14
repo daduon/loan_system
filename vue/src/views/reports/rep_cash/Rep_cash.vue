@@ -63,8 +63,8 @@ export default defineComponent({
                 return {
                     id: item.id,
                     cash_in_user_name: item.cash_in_user_name,
-                    cash_in_amt_usd: this.formatCurrency(item.cash_in_amt_usd),
-                    cash_in_amt_khr: this.formatCurrencyKHR(item.cash_in_amt_khr),
+                    cash_in_amt_usd: this.formatCurrency(item.cash_in_amt_usd == 0 ? item.income_cash_in_usd : item.cash_in_amt_usd),
+                    cash_in_amt_khr: this.formatCurrencyKHR(item.cash_in_amt_khr == 0 ? item.income_cash_in_kh : item.cash_in_amt_khr),
                     // income_cash_in_usd: this.formatCurrency(item.income_cash_in_usd),
                     // income_cash_in_kh: this.formatCurrencyKHR(item.income_cash_in_kh),
                     cash_in_date: this.dateFormat(item.cash_in_date),

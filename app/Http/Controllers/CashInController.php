@@ -20,7 +20,7 @@ class CashInController extends Controller
     public function index()
     {
         try {
-            $cashIns = CashIn::orderBy('cash_in_date')->get();
+            $cashIns = CashIn::orderBy('cash_in_date', 'desc')->get();
             $cashIns->transform(function ($cashIn) {
                 $cashIn->cash_in_user_name = $cashIn->getUserName();
                 return $cashIn;
