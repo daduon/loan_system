@@ -2,9 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\CashTransactionType;
 use Illuminate\Http\Request;
 use App\Models\Borrow_Master;
 use App\Models\Borrow_Schedule;
+use App\Models\CashTransaction;
+use Carbon\Carbon;
+use Exception;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
@@ -23,20 +27,22 @@ class BorrowMasterController extends Controller
                 'borrow_masters.*',
                 'c_o_employees.name',
                 'c_o_employees.address',
-                'c_o_employees.phone')
+                'c_o_employees.phone'
+            )
             ->get();
 
 
         return $borrow_masters;
     }
 
-    public function retrieveCountDate($type, $fromDate ,$toDate){
+    public function retrieveCountDate($type, $fromDate, $toDate)
+    {
 
         $newDate = $fromDate;
         $firstInterestPaymentDate = $fromDate;
         $maturityDate = $toDate;
 
-        if($type == '02'){
+        if ($type == '02') {
             $results = DB::select("
             WITH /* K.vichet / this is schedule detail for insert into table schedule */
 			 BorrowingInterestPaymentTypeCode AS (SELECT CASE '01' WHEN '01' THEN 1 ELSE 0 END borrowingInterestPaymentTypeCode) --Make Code as month count
@@ -49,11 +55,11 @@ class BorrowMasterController extends Controller
 				CROSS JOIN firstPaymentDate
 				CROSS JOIN maturityDate
 			)
-			, InterestSchedule AS ( 
+			, InterestSchedule AS (
 				WITH RECURSIVE InterestSchedule(n, o, p) as
 				( SELECT firstPaymentDate n, 0.01 o, firstPaymentDate p from firstPaymentDate
 				    UNION ALL
-				    SELECT TO_CHAR(n::DATE + CAST((borrowingInterestPaymentTypeCode)||' '||'MONTH' AS INTERVAL), 'yyyymmdd'), o + 0.01, TO_CHAR('$firstInterestPaymentDate'::DATE + CAST((borrowingInterestPaymentTypeCode * o)||' '||'MONTH' AS INTERVAL), 'yyyymmdd') 
+				    SELECT TO_CHAR(n::DATE + CAST((borrowingInterestPaymentTypeCode)||' '||'MONTH' AS INTERVAL), 'yyyymmdd'), o + 0.01, TO_CHAR('$firstInterestPaymentDate'::DATE + CAST((borrowingInterestPaymentTypeCode * o)||' '||'MONTH' AS INTERVAL), 'yyyymmdd')
 				    FROM InterestSchedule n CROSS JOIN BorrowingInterestPaymentTypeCode
 				    WHERE n.p < (select maturityDate FROM maturityDate)
 			    )select * from InterestSchedule
@@ -73,7 +79,7 @@ class BorrowMasterController extends Controller
 				SELECT maturityDate from maturityDate
 			)
 --			select * from b
---			
+--
 			, c AS ( --Move to next biz date
 				select
 						(SELECT AA.basedate FROM holiday_dates AA WHERE AA.basedate = b.dates AND AA.holidaydate ='01' ORDER BY AA.basedate LIMIT 1) nextBizDay
@@ -86,7 +92,7 @@ class BorrowMasterController extends Controller
 					dates
 			)
 --			SELECT * FROM c
---			
+--
 			, d as ( --Filter out the date after maturity date
 				SELECT
 						CASE WHEN nextBizDay = newdate THEN newdate ELSE nextBizDay END fromDate
@@ -100,12 +106,12 @@ class BorrowMasterController extends Controller
 					dates
 			)
 --			SELECT * FROM d
---			
+--
 			, e as ( -- If days in last records of schedule is less than 15 days it will remove one month
 				SELECT
 					*
 					, todate::DATE - fromDate::DATE  dayCount
-					, case 
+					, case
 						when todate = maturitydate and (todate::DATE - fromDate::DATE) < 15 THEN monthcount
 					  else monthcount end monthcount1
 				FROM
@@ -113,7 +119,7 @@ class BorrowMasterController extends Controller
 				where toDate IS NOT NULL
 			)
 --			SELECT * FROM e
---			
+--
 			,f as ( --Merge the month that is less than 15 days
 				SELECT
 					MIN(fromdate) fromdate,
@@ -126,14 +132,14 @@ class BorrowMasterController extends Controller
 					MIN(monthcount) monthcount,
 					CASE when SUM(daycount) > 1 then 1 else SUM(daycount) end daycount
 				FROM
-					e 
+					e
 				group by monthcount1
 				order by monthcount
 			)
 --			SELECT * FROM f
---			
+--
 			, g as ( --Calculate monthN for Pricipal Pay
-				SELECT														
+				SELECT
 					*
 					, CEIL(monthcount*borrowinginterestpaymenttypecode/borrowingprinciplepaymenttypecode::NUMERIC)  AS monthN
 					, ROW_NUMBER () OVER (PARTITION BY CEIL(monthcount*borrowinginterestpaymenttypecode/borrowingprinciplepaymenttypecode::NUMERIC)) monthNCount
@@ -141,35 +147,35 @@ class BorrowMasterController extends Controller
 				FROM f CROSS JOIN BorrowingInterestPaymentTypeCode CROSS JOIN BorrowingPrinciplePaymentTypeCode
 			)
 --			select * from g
---			
+--
 			, H AS (
 				SELECT
 					*
-					, CASE 
-						WHEN 
-								(borrowinginterestpaymenttypecode = borrowingprinciplepaymenttypecode) 
+					, CASE
+						WHEN
+								(borrowinginterestpaymenttypecode = borrowingprinciplepaymenttypecode)
 							OR
 								(monthNCount * borrowinginterestpaymenttypecode =  borrowingprinciplepaymenttypecode) --Interval
 							OR
 								(maxMonthCount = monthcount) --Last Row
-								THEN TRUE 
-						ELSE 
-							FALSE 
+								THEN TRUE
+						ELSE
+							FALSE
 						END  isPrinciplePayment
 				FROM
 					G
 			)
 --			select * FROM h
---			
+--
 			, Months AS (
-				SELECT * 
+				SELECT *
 					, SUM(CASE WHEN isprinciplepayment THEN 1 ELSE 0 END) OVER() AS principlePaymentCount
 				FROM H
 			)
 --			select * from Months
---			
+--
 			, Days AS (
-				SELECT 
+				SELECT
 					TO_CHAR(days, 'yyyymmdd') days,
 					1 as dayCount,
 					0 loanBalance,
@@ -182,9 +188,9 @@ class BorrowMasterController extends Controller
 				) AS days CROSS JOIN allDate
 			)
 --			select * from Days
---			
+--
 			, MERG_DAY_MONTH AS (
-				SELECT 
+				SELECT
 					A.*
 					, B.toDate paymentDate
 					, B.isPrinciplePayment
@@ -193,33 +199,33 @@ class BorrowMasterController extends Controller
 					, B.toDate
 					, B.monthcount
 					, B.principlePaymentCount
-					, COALESCE(CASE WHEN B.isprinciplepayment THEN 
-							CASE 
+					, COALESCE(CASE WHEN B.isprinciplepayment THEN
+							CASE
 									WHEN A.currencyCode = 'USD' THEN TRUNC((( A.loanbalance::numeric) / B.principlePaymentCount), 2)
 									WHEN A.currencyCode = 'KHR' THEN TRUNC(( A.loanbalance::numeric) / B.principlePaymentCount)
-									ELSE 0 
-								END 
+									ELSE 0
+								END
 							ELSE 0 END, 0) principlePaymentAmount
-					,  CASE 
+					,  CASE
 							WHEN A.currencyCode = 'USD' THEN TRUNC((A.loanbalance::numeric), 2)
 							WHEN A.currencyCode = 'KHR' THEN TRUNC(A.loanbalance::numeric)
-						ELSE 0 
+						ELSE 0
 					  end loanCalculation
-					,  CASE 
+					,  CASE
 							WHEN A.currencyCode = 'USD' THEN TRUNC((A.loanbalance::numeric * applyInterestRate/100),2)
 							WHEN A.currencyCode = 'KHR' THEN TRUNC((A.loanbalance::numeric * applyInterestRate/100))
 						ELSE 0  end interestCalcu
-					, CASE 
+					, CASE
 							WHEN A.currencyCode = 'USD' THEN TRUNC((A.loanbalance::numeric / B.principlePaymentCount),2)
 							WHEN A.currencyCode = 'KHR' THEN TRUNC((A.loanbalance::numeric / B.principlePaymentCount))
-						ELSE 0  end payBalance 
+						ELSE 0  end payBalance
 				FROM
-					Days A 
+					Days A
 						LEFT JOIN Months B ON A.days = B.todate
 			)
 --			SELECT * FROM MERG_DAY_MONTH
---			
-			, CalculateLoanBalance AS ( 
+--
+			, CalculateLoanBalance AS (
 				SELECT
 					*
 					, SUM(principlepaymentamount) over (order by days asc rows between unbounded preceding and current row) accumulateSubstractAmount
@@ -228,7 +234,7 @@ class BorrowMasterController extends Controller
 					MERG_DAY_MONTH
 			)
 --			select * from CalculateLoanBalance
---			
+--
 			, CalculateLoanBalance1 AS (
 				SELECT
 					*
@@ -238,7 +244,7 @@ class BorrowMasterController extends Controller
 				CalculateLoanBalance
 			)
 --			select * from CalculateLoanBalance1
---			
+--
 			, CalculateLoanBalance2 AS (
 				SELECT
 					*
@@ -247,7 +253,7 @@ class BorrowMasterController extends Controller
 					CalculateLoanBalance1 A
 			)
 --			select * FROM CalculateLoanBalance2
---			
+--
 			, CalculateLoanBalance22 as (
 				select --not include first day
 					*
@@ -261,14 +267,14 @@ class BorrowMasterController extends Controller
 					, LEAD(monthcount) OVER (ORDER BY days) monthcount2
 					, LEAD(loanbalance2) OVER (ORDER BY days) loanbalance3
 					, LEAD(principlepaymentamount1) OVER (ORDER BY days) principlepaymentamount2
-					, LEAD(interestCalcu) OVER (ORDER BY days) 	interestCalcul	
+					, LEAD(interestCalcu) OVER (ORDER BY days) 	interestCalcul
 					, LEAD(payBalance) OVER (ORDER BY days) payBalance1
 				from
 					CalculateLoanBalance2
 				ORDER BY days
 			)
 --			SELECT * FROM CalculateLoanBalance22
---			
+--
 			, CalculateLoanBalance3 AS (
 				SELECT
 					paymentdate3
@@ -279,14 +285,14 @@ class BorrowMasterController extends Controller
 					, MAX(fromdate2)				fromDate
 					, MAX(toDate2)				toDate
 					, CASE WHEN SUM(daycount2) > 1 THEN CASE WHEN MAX(principlepaymentamount1) = 0 THEN LEAD(principlepaymentamount1) OVER(ORDER BY paymentdate4) ELSE MAX(principlepaymentamount1) END
-						   ELSE SUM(CASE WHEN paymentdate4 = days1 AND isprinciplepayment1 
+						   ELSE SUM(CASE WHEN paymentdate4 = days1 AND isprinciplepayment1
 						   THEN principlepaymentamount2 ELSE 0 END)
 					  END  principlepaymentamount1
 					, MIN(loanbalance3)			loanbalance
 					, MAX(loanbalance)			loanAmount
 					, MAX(currencycode)			currencycode
 					, CASE WHEN MIN(loanbalance3) = 0 THEN LAG(MAX(interestCalcul)) OVER(ORDER BY paymentdate4) ELSE MAX(interestCalcul) END interestCalculation
---					, MAX(payBalance1)			payBalance2 
+--					, MAX(payBalance1)			payBalance2
 					, CASE WHEN MIN(loanbalance3) = 0 THEN LAG(MIN(loanbalance3)) OVER(ORDER BY paymentdate4) ELSE MAX(payBalance1) END payBalance2
 				FROM
 					CalculateLoanBalance22
@@ -294,7 +300,7 @@ class BorrowMasterController extends Controller
 				ORDER BY paymentdate3
 			)
 --			SELECT * FROM CalculateLoanBalance3
---			
+--
 			, CalculateLoanBalance4 AS (
 				SELECT
 					*
@@ -347,28 +353,29 @@ class BorrowMasterController extends Controller
 
     public function createBorrower(Request $request, Borrow_Master $borrow_Master)
     {
+        DB::beginTransaction();
+        try {
+            $id = IdGenerator::generate(['table' => 'borrow_masters', 'length' => 14, 'prefix' => 'BRW-']);
 
-        $id = IdGenerator::generate(['table' => 'borrow_masters', 'length' => 14, 'prefix' => 'BRW-']);
+            $borrowingNo                                = $id;
+            $borrowingInterestPaymentTypeCode           = $request->borrowingTypeCode;
+            $borrowingPrinciplePaymentTypeCode          = $request->borrowingPrinciplePaymentTypeCode;
+            $maturityDate                               = $request->maturityDate;
+            $newDate                                    = $request->newDate;
+            $paymentType                                = $request->paymentType;
+            $firstInterestPaymentDate                   = $request->firstInterestPaymentDate;
+            $taxRate                                    = $request->taxRate;
+            $newTaxRate                                 = $request->newTaxRate;
+            $newTaxRateFromDate                         = $request->newTaxRateFromDate;
+            $newTaxRateToDate                           = $request->newTaxRateToDate;
+            $loanAmount                                 = $request->loanAmount;
+            $currencyCode                               = $request->currencyCode;;
+            $applyInterestRate                          = $request->applyInterestRate;
+            $borrowingInterestCalculationTypeCode       = $request->borrowingInterestCalculationTypeCode;
+            $payType                                    = $request->payType;
 
-        $borrowingNo                                = $id;
-        $borrowingInterestPaymentTypeCode           = $request->borrowingTypeCode;
-        $borrowingPrinciplePaymentTypeCode          = $request->borrowingPrinciplePaymentTypeCode;
-        $maturityDate                               = $request->maturityDate;
-        $newDate                                    = $request->newDate;
-        $paymentType                                = $request->paymentType;
-        $firstInterestPaymentDate                   = $request->firstInterestPaymentDate;
-        $taxRate                                    = $request->taxRate;
-        $newTaxRate                                 = $request->newTaxRate;
-        $newTaxRateFromDate                         = $request->newTaxRateFromDate;
-        $newTaxRateToDate                           = $request->newTaxRateToDate;
-        $loanAmount                                 = $request->loanAmount;
-        $currencyCode                               = $request->currencyCode;;
-        $applyInterestRate                          = $request->applyInterestRate;
-        $borrowingInterestCalculationTypeCode       = $request->borrowingInterestCalculationTypeCode;
-        $payType                                    = $request->payType;
-
-        if($payType == "02"){
-            $results = DB::select("
+            if ($payType == "02") {
+                $results = DB::select("
             WITH /* K.vichet / this is schedule detail for insert into table schedule */
 			 BorrowingInterestPaymentTypeCode AS (SELECT CASE '01' WHEN '01' THEN 1 ELSE 0 END borrowingInterestPaymentTypeCode) --Make Code as month count
 			, BorrowingPrinciplePaymentTypeCode AS (SELECT CASE '01' WHEN '01' THEN 1 ELSE 0 END borrowingPrinciplePaymentTypeCode)--Make Code as month count
@@ -380,11 +387,11 @@ class BorrowMasterController extends Controller
 				CROSS JOIN firstPaymentDate
 				CROSS JOIN maturityDate
 			)
-			, InterestSchedule AS ( 
+			, InterestSchedule AS (
 				WITH RECURSIVE InterestSchedule(n, o, p) as
 				( SELECT firstPaymentDate n, 0.01 o, firstPaymentDate p from firstPaymentDate
 				    UNION ALL
-				    SELECT TO_CHAR(n::DATE + CAST((borrowingInterestPaymentTypeCode)||' '||'MONTH' AS INTERVAL), 'yyyymmdd'), o + 0.01, TO_CHAR('$firstInterestPaymentDate'::DATE + CAST((borrowingInterestPaymentTypeCode * o)||' '||'MONTH' AS INTERVAL), 'yyyymmdd') 
+				    SELECT TO_CHAR(n::DATE + CAST((borrowingInterestPaymentTypeCode)||' '||'MONTH' AS INTERVAL), 'yyyymmdd'), o + 0.01, TO_CHAR('$firstInterestPaymentDate'::DATE + CAST((borrowingInterestPaymentTypeCode * o)||' '||'MONTH' AS INTERVAL), 'yyyymmdd')
 				    FROM InterestSchedule n CROSS JOIN BorrowingInterestPaymentTypeCode
 				    WHERE n.p < (select maturityDate FROM maturityDate)
 			    )select * from InterestSchedule
@@ -404,7 +411,7 @@ class BorrowMasterController extends Controller
 				SELECT maturityDate from maturityDate
 			)
 --			select * from b
---			
+--
 			, c AS ( --Move to next biz date
 				select
 						(SELECT AA.basedate FROM holiday_dates AA WHERE AA.basedate = b.dates AND AA.holidaydate ='01' ORDER BY AA.basedate LIMIT 1) nextBizDay
@@ -417,7 +424,7 @@ class BorrowMasterController extends Controller
 					dates
 			)
 --			SELECT * FROM c
---			
+--
 			, d as ( --Filter out the date after maturity date
 				SELECT
 						CASE WHEN nextBizDay = newdate THEN newdate ELSE nextBizDay END fromDate
@@ -431,12 +438,12 @@ class BorrowMasterController extends Controller
 					dates
 			)
 --			SELECT * FROM d
---			
+--
 			, e as ( -- If days in last records of schedule is less than 15 days it will remove one month
 				SELECT
 					*
 					, todate::DATE - fromDate::DATE  dayCount
-					, case 
+					, case
 						when todate = maturitydate and (todate::DATE - fromDate::DATE) < 15 THEN monthcount
 					  else monthcount end monthcount1
 				FROM
@@ -444,7 +451,7 @@ class BorrowMasterController extends Controller
 				where toDate IS NOT NULL
 			)
 --			SELECT * FROM e
---			
+--
 			,f as ( --Merge the month that is less than 15 days
 				SELECT
 					MIN(fromdate) fromdate,
@@ -457,14 +464,14 @@ class BorrowMasterController extends Controller
 					MIN(monthcount) monthcount,
 					CASE when SUM(daycount) > 1 then 1 else SUM(daycount) end daycount
 				FROM
-					e 
+					e
 				group by monthcount1
 				order by monthcount
 			)
 --			SELECT * FROM f
---			
+--
 			, g as ( --Calculate monthN for Pricipal Pay
-				SELECT														
+				SELECT
 					*
 					, CEIL(monthcount*borrowinginterestpaymenttypecode/borrowingprinciplepaymenttypecode::NUMERIC)  AS monthN
 					, ROW_NUMBER () OVER (PARTITION BY CEIL(monthcount*borrowinginterestpaymenttypecode/borrowingprinciplepaymenttypecode::NUMERIC)) monthNCount
@@ -472,35 +479,35 @@ class BorrowMasterController extends Controller
 				FROM f CROSS JOIN BorrowingInterestPaymentTypeCode CROSS JOIN BorrowingPrinciplePaymentTypeCode
 			)
 --			select * from g
---			
+--
 			, H AS (
 				SELECT
 					*
-					, CASE 
-						WHEN 
-								(borrowinginterestpaymenttypecode = borrowingprinciplepaymenttypecode) 
+					, CASE
+						WHEN
+								(borrowinginterestpaymenttypecode = borrowingprinciplepaymenttypecode)
 							OR
 								(monthNCount * borrowinginterestpaymenttypecode =  borrowingprinciplepaymenttypecode) --Interval
 							OR
 								(maxMonthCount = monthcount) --Last Row
-								THEN TRUE 
-						ELSE 
-							FALSE 
+								THEN TRUE
+						ELSE
+							FALSE
 						END  isPrinciplePayment
 				FROM
 					G
 			)
 --			select * FROM h
---			
+--
 			, Months AS (
-				SELECT * 
+				SELECT *
 					, SUM(CASE WHEN isprinciplepayment THEN 1 ELSE 0 END) OVER() AS principlePaymentCount
 				FROM H
 			)
 --			select * from Months
---			
+--
 			, Days AS (
-				SELECT 
+				SELECT
 					TO_CHAR(days, 'yyyymmdd') days,
 					1 as dayCount,
 					$loanAmount loanBalance,
@@ -513,9 +520,9 @@ class BorrowMasterController extends Controller
 				) AS days CROSS JOIN allDate
 			)
 --			select * from Days
---			
+--
 			, MERG_DAY_MONTH AS (
-				SELECT 
+				SELECT
 					A.*
 					, B.toDate paymentDate
 					, B.isPrinciplePayment
@@ -524,33 +531,33 @@ class BorrowMasterController extends Controller
 					, B.toDate
 					, B.monthcount
 					, B.principlePaymentCount
-					, COALESCE(CASE WHEN B.isprinciplepayment THEN 
-							CASE 
+					, COALESCE(CASE WHEN B.isprinciplepayment THEN
+							CASE
 									WHEN A.currencyCode = 'USD' THEN TRUNC((( A.loanbalance::numeric) / B.principlePaymentCount), 2)
 									WHEN A.currencyCode = 'KHR' THEN TRUNC(( A.loanbalance::numeric) / B.principlePaymentCount)
-									ELSE 0 
-								END 
+									ELSE 0
+								END
 							ELSE 0 END, 0) principlePaymentAmount
-					,  CASE 
+					,  CASE
 							WHEN A.currencyCode = 'USD' THEN TRUNC((A.loanbalance::numeric), 2)
 							WHEN A.currencyCode = 'KHR' THEN TRUNC(A.loanbalance::numeric)
-						ELSE 0 
+						ELSE 0
 					  end loanCalculation
-					,  CASE 
+					,  CASE
 							WHEN A.currencyCode = 'USD' THEN TRUNC((A.loanbalance::numeric * applyInterestRate/100),2)
 							WHEN A.currencyCode = 'KHR' THEN TRUNC((A.loanbalance::numeric * applyInterestRate/100))
 						ELSE 0  end interestCalcu
-					, CASE 
+					, CASE
 							WHEN A.currencyCode = 'USD' THEN TRUNC((A.loanbalance::numeric / B.principlePaymentCount),2)
 							WHEN A.currencyCode = 'KHR' THEN TRUNC((A.loanbalance::numeric / B.principlePaymentCount))
-						ELSE 0  end payBalance 
+						ELSE 0  end payBalance
 				FROM
-					Days A 
+					Days A
 						LEFT JOIN Months B ON A.days = B.todate
 			)
 --			SELECT * FROM MERG_DAY_MONTH
---			
-			, CalculateLoanBalance AS ( 
+--
+			, CalculateLoanBalance AS (
 				SELECT
 					*
 					, SUM(principlepaymentamount) over (order by days asc rows between unbounded preceding and current row) accumulateSubstractAmount
@@ -559,7 +566,7 @@ class BorrowMasterController extends Controller
 					MERG_DAY_MONTH
 			)
 --			select * from CalculateLoanBalance
---			
+--
 			, CalculateLoanBalance1 AS (
 				SELECT
 					*
@@ -569,7 +576,7 @@ class BorrowMasterController extends Controller
 				CalculateLoanBalance
 			)
 --			select * from CalculateLoanBalance1
---			
+--
 			, CalculateLoanBalance2 AS (
 				SELECT
 					*
@@ -578,7 +585,7 @@ class BorrowMasterController extends Controller
 					CalculateLoanBalance1 A
 			)
 --			select * FROM CalculateLoanBalance2
---			
+--
 			, CalculateLoanBalance22 as (
 				select --not include first day
 					*
@@ -592,14 +599,14 @@ class BorrowMasterController extends Controller
 					, LEAD(monthcount) OVER (ORDER BY days) monthcount2
 					, LEAD(loanbalance2) OVER (ORDER BY days) loanbalance3
 					, LEAD(principlepaymentamount1) OVER (ORDER BY days) principlepaymentamount2
-					, LEAD(interestCalcu) OVER (ORDER BY days) 	interestCalcul	
+					, LEAD(interestCalcu) OVER (ORDER BY days) 	interestCalcul
 					, LEAD(payBalance) OVER (ORDER BY days) payBalance1
 				from
 					CalculateLoanBalance2
 				ORDER BY days
 			)
 --			SELECT * FROM CalculateLoanBalance22
---			
+--
 			, CalculateLoanBalance3 AS (
 				SELECT
 					paymentdate3
@@ -610,14 +617,14 @@ class BorrowMasterController extends Controller
 					, MAX(fromdate2)				fromDate
 					, MAX(toDate2)				toDate
 					, CASE WHEN SUM(daycount2) > 1 THEN CASE WHEN MAX(principlepaymentamount1) = 0 THEN LEAD(principlepaymentamount1) OVER(ORDER BY paymentdate4) ELSE MAX(principlepaymentamount1) END
-						   ELSE SUM(CASE WHEN paymentdate4 = days1 AND isprinciplepayment1 
+						   ELSE SUM(CASE WHEN paymentdate4 = days1 AND isprinciplepayment1
 						   THEN principlepaymentamount2 ELSE 0 END)
 					  END  principlepaymentamount1
 					, MIN(loanbalance3)			loanbalance
 					, MAX(loanbalance)			loanAmount
 					, MAX(currencycode)			currencycode
 					, CASE WHEN MIN(loanbalance3) = 0 THEN LAG(MAX(interestCalcul)) OVER(ORDER BY paymentdate4) ELSE MAX(interestCalcul) END interestCalculation
---					, MAX(payBalance1)			payBalance2 
+--					, MAX(payBalance1)			payBalance2
 					, CASE WHEN MIN(loanbalance3) = 0 THEN LAG(MIN(loanbalance3)) OVER(ORDER BY paymentdate4) ELSE MAX(payBalance1) END payBalance2
 				FROM
 					CalculateLoanBalance22
@@ -625,7 +632,7 @@ class BorrowMasterController extends Controller
 				ORDER BY paymentdate3
 			)
 --			SELECT * FROM CalculateLoanBalance3
---			
+--
 			, CalculateLoanBalance4 AS (
 				SELECT
 					*
@@ -651,9 +658,10 @@ class BorrowMasterController extends Controller
 				CalculateLoanBalance4
 			WHERE loanbalance is NOT null and fromdate is not NULL
                ");
-        } else {
+            } else {
 
-            $results = DB::select("
+                $results = DB::select(
+                    "
             WITH /* K.vichet / this is schedule detail for insert into table schedule */
                 BorrowingInterestPaymentTypeCode AS (SELECT CASE '$borrowingInterestPaymentTypeCode' WHEN '01' THEN 1 WHEN '02' THEN 3 WHEN '03' THEN 6 WHEN '04' THEN 12 WHEN '05' THEN 9999 ELSE 0 END borrowingInterestPaymentTypeCode) --Make Code as month count
             , borrowingprinciplepaymenttypecode AS (SELECT CASE '$borrowingPrinciplePaymentTypeCode' WHEN '0.5' THEN 1 WHEN '01' THEN 1 WHEN '02' THEN 3 WHEN '03' THEN 6 WHEN '04' THEN 12 WHEN '05' THEN 9999 ELSE 0 END borrowingPrinciplePaymentTypeCode)--Make Code as month count
@@ -717,9 +725,9 @@ class BorrowMasterController extends Controller
                 SELECT
                     *
                     , todate::DATE - fromDate::DATE  dayCount
-                    , CASE WHEN $paymentType::NUMERIC = 0.5 then 
+                    , CASE WHEN $paymentType::NUMERIC = 0.5 then
 	                      monthcount
-		               ELSE 
+		               ELSE
 		               	  case
 		                     when todate = maturitydate and (todate::DATE - fromDate::DATE) < 15 THEN monthcount - 1
 		                  else monthcount end
@@ -745,7 +753,7 @@ class BorrowMasterController extends Controller
                 order by monthcount
             )
 --            SELECT * FROM f
---            
+--
             , g as ( --Calculate monthN for Pricipal Pay
                 SELECT
                     *
@@ -777,7 +785,7 @@ class BorrowMasterController extends Controller
                 FROM H
             )
 --            select * FROM Months
---            
+--
             , Days AS (
                 SELECT
                     TO_CHAR(days, 'yyyymmdd') days,
@@ -846,27 +854,27 @@ class BorrowMasterController extends Controller
                                     ELSE 0
                             END
                         end loanCalculation
-                       , CASE 
-							when $paymentType::NUMERIC = 0.5 then -- Half Month 
-		                        CASE 
+                       , CASE
+							when $paymentType::NUMERIC = 0.5 then -- Half Month
+		                        CASE
 									WHEN A.currencyCode = 'USD' THEN TRUNC((A.loanbalance::numeric * applyInterestRate/100),2)/2
 									WHEN A.currencyCode = 'KHR' THEN TRUNC((A.loanbalance::numeric * applyInterestRate/100))/2
-								ELSE 0  end 
+								ELSE 0  end
 							when $paymentType::NUMERIC = 0.25 then -- a weekly
-								  CASE 
+								  CASE
 									WHEN A.currencyCode = 'USD' THEN TRUNC((A.loanbalance::numeric * applyInterestRate/100),2)/4
 									WHEN A.currencyCode = 'KHR' THEN TRUNC((A.loanbalance::numeric * applyInterestRate/100))/4
 								ELSE 0  end
-							else 
-								 CASE 
+							else
+								 CASE
 									WHEN A.currencyCode = 'USD' THEN TRUNC((A.loanbalance::numeric * applyInterestRate/100),2)
 									WHEN A.currencyCode = 'KHR' THEN TRUNC((A.loanbalance::numeric * applyInterestRate/100))
-								ELSE 0  end	
+								ELSE 0  end
 								end interestCalcu
-						, CASE 
+						, CASE
 							WHEN A.currencyCode = 'USD' THEN TRUNC((A.loanbalance::numeric / B.principlePaymentCount),2)
 							WHEN A.currencyCode = 'KHR' THEN TRUNC((A.loanbalance::numeric / B.principlePaymentCount))
-						ELSE 0  end payBalance 
+						ELSE 0  end payBalance
                 FROM
                     Days A
                         LEFT JOIN Months B ON A.days = B.todate
@@ -956,48 +964,80 @@ class BorrowMasterController extends Controller
                 CalculateLoanBalance4
             WHERE principlepaymentamount1 > 0
                 "
-            );
+                );
+            }
+
+            $borrow_Master->id                     = $id;
+            $borrow_Master->customer_id            = $request->customerId;
+            $borrow_Master->coemployee_id          = $request->coemployeeId;
+            $borrow_Master->borrowingtypecode      = $request->borrowingTypeCode;
+            $borrow_Master->currencycode           = $request->currencyCode;
+            $borrow_Master->loanamount             = $request->loanAmount;
+            $borrow_Master->maturitydate           = $request->maturityDate;
+            $borrow_Master->startDate              = $request->newDate;
+            $borrow_Master->applyinterestrate      = $request->applyInterestRate;
+            $borrow_Master->ispaid                 = '0';
+            $borrow_Master->payType                = $request->payType;
+            $borrow_Master->numofmonth             = $request->numofmonth;
+            $borrow_Master->remarkdesc             = $request->remarkDesc;
+
+            $borrow_Master->save();
+
+            $dateCreated = Carbon::now()->format('Ymd');
+            $currencyCode = $borrow_Master->currencyCode;
+
+            $amountUSD = $currencyCode == 'USD' ? $borrow_Master->loanamount : 0;
+            $amountKHR = $currencyCode == 'KHR' ? $borrow_Master->loanamount : 0;
+
+            $cashinTotal = CashTransaction::get();
+
+            if ($cashinTotal->isEmpty()) {
+                throw new Exception('Please insert some cash to make your transaction!', 500);
+            } else {
+                $cashTrnscnt = CashTransaction::find($cashinTotal->get(0)->id);
+                $totalUSD = $cashTrnscnt->cash_total_usd;
+                $totalKHR = $cashTrnscnt->cash_total_kh;
+                $this->handleTransactionUSD($amountUSD, $totalUSD);
+                $this->handleTransactionKHR($amountKHR, $totalKHR);
+
+                $cashTrnscnt->update([
+                    'cash_total_usd' => $totalUSD -= $amountUSD,
+                    'cash_total_kh' => $totalKHR -= $amountKHR,
+                    'date' => $dateCreated,
+                    'cash_in_desc' => CashTransactionType::LOAN->value,
+                ]);
+            }
+
+            foreach ($results as $key) {
+                $insertSchedule = new Borrow_Schedule;
+
+                $insertSchedule->id                             = $Sedid = IdGenerator::generate(['table' => 'borrow_schedules', 'length' => 14, 'prefix' => 'SED-']);
+                $insertSchedule->borrowing_id                   = $id;
+                $insertSchedule->paymentapplydate               = $key->paymentapplydate;
+                $insertSchedule->taxamount                      = 0;
+                $insertSchedule->repaytaxamount                 = 0;
+                $insertSchedule->repayinterest                  = 0;
+                $insertSchedule->ledgerstatuscode               = $key->ledgerstatuscode;
+                $insertSchedule->paymentfromdate                = $key->schedulestartdate;
+                $insertSchedule->paymenttodate                  = $key->scheduleenddate;
+                $insertSchedule->applyinterestrate              = $key->applyinterestrate;
+                $insertSchedule->scheduleseqno                  = $key->paymentnumberoftime;
+                $insertSchedule->schedulestatuscode             = 0;
+                $insertSchedule->transactionprincipal           = $key->loanbalance;
+                $insertSchedule->transactioninterestamount      = 0;
+                $insertSchedule->repayprincipal                 = $key->repayprincipal;
+                $insertSchedule->calc                           = $key->calcdays;
+                $insertSchedule->save();
+            };
+
+            DB::commit();
+            return $borrow_Master;
+        } catch (Exception $e) {
+            DB::rollBack();
+            return response([
+                'message' => $e->getMessage(),
+            ], 500);
         }
-
-        $borrow_Master->id                     = $id;
-        $borrow_Master->customer_id            = $request->customerId;
-        $borrow_Master->coemployee_id          = $request->coemployeeId;
-        $borrow_Master->borrowingtypecode      = $request->borrowingTypeCode;
-        $borrow_Master->currencycode           = $request->currencyCode;
-        $borrow_Master->loanamount             = $request->loanAmount;
-        $borrow_Master->maturitydate           = $request->maturityDate;
-        $borrow_Master->startDate              = $request->newDate;
-        $borrow_Master->applyinterestrate      = $request->applyInterestRate;
-        $borrow_Master->ispaid                 = '0';
-        $borrow_Master->payType                = $request->payType;
-        $borrow_Master->numofmonth             = $request->numofmonth;
-        $borrow_Master->remarkdesc             = $request->remarkDesc;
-
-        $borrow_Master->save();
-
-        foreach ($results as $key) {
-            $insertSchedule = new Borrow_Schedule;
-
-            $insertSchedule->id                             = $Sedid = IdGenerator::generate(['table' => 'borrow_schedules', 'length' => 14, 'prefix' => 'SED-']);
-            $insertSchedule->borrowing_id                   = $id;
-            $insertSchedule->paymentapplydate               = $key->paymentapplydate;
-            $insertSchedule->taxamount                      = 0;
-            $insertSchedule->repaytaxamount                 = 0;
-            $insertSchedule->repayinterest                  = 0;
-            $insertSchedule->ledgerstatuscode               = $key->ledgerstatuscode;
-            $insertSchedule->paymentfromdate                = $key->schedulestartdate;
-            $insertSchedule->paymenttodate                  = $key->scheduleenddate;
-            $insertSchedule->applyinterestrate              = $key->applyinterestrate;
-            $insertSchedule->scheduleseqno                  = $key->paymentnumberoftime;
-            $insertSchedule->schedulestatuscode             = 0;
-            $insertSchedule->transactionprincipal           = $key->loanbalance;
-            $insertSchedule->transactioninterestamount      = 0;
-            $insertSchedule->repayprincipal                 = $key->repayprincipal;
-            $insertSchedule->calc                           = $key->calcdays;
-            $insertSchedule->save();
-        };
-
-        return $borrow_Master;
     }
 
     public function updateBorrower(Request $request, $id)
@@ -1346,5 +1386,27 @@ class BorrowMasterController extends Controller
         ");
 
         dd($results);
+    }
+
+    private function handleTransactionUSD($amountUSD, $totalUSD)
+    {
+        if ($amountUSD > 0) {
+            if ($totalUSD == 0) {
+                throw new Exception('Please insert some cash USD to make your transaction!', 500);
+            } else if ($totalUSD < $amountUSD) {
+                throw new Exception('Your cash USD is not enough to make your transaction!', 500);
+            }
+        }
+    }
+
+    private function handleTransactionKHR($amountKHR, $totalKHR)
+    {
+        if ($amountKHR > 0) {
+            if ($totalKHR == 0) {
+                throw new Exception('Your cash USD is not enough to make your transaction!', 500);
+            } else if ($totalKHR < $amountKHR) {
+                throw new Exception('Your cash KHR is not enough to make your transaction!', 500);
+            }
+        }
     }
 }
