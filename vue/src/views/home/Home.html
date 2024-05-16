@@ -22,7 +22,10 @@
                                                       <i class="bi bi-cash"></i>
                                                 </router-link>
                                           </div>
-                                          <div class="ps-3">
+                                          <div class="ps-3" v-if="totalCash.cash_total_usd == ''">
+                                                <h6>0</h6>
+                                          </div>
+                                          <div class="ps-3" v-if="totalCash.cash_total_usd != ''">
                                                 <h6>{{ totalCash.cash_total_usd }}</h6>
                                           </div>
                                     </div>
@@ -39,7 +42,10 @@
                                                       <i class="bi bi-cash"></i>
                                                 </router-link>
                                           </div>
-                                          <div class="ps-3">
+                                          <div class="ps-3" v-if="totalCash.cash_total_kh == ''">
+                                                <h6>0</h6>
+                                          </div>
+                                          <div class="ps-3" v-if="totalCash.cash_total_kh != ''">
                                                 <h6>{{ totalCash.cash_total_kh }}</h6>
                                           </div>
                                     </div>
