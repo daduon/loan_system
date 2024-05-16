@@ -20,6 +20,10 @@ class ExpenseController extends Controller
     {
         try {
             $expenses = Expense::orderBy('expense_date')->get();
+            $expenses->transform(function ($expense) {
+                $expense->expense_by = $expense->getUserName();
+                return $expense;
+            });
             return response([
                 'data' => $expenses
             ]);

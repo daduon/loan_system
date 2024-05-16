@@ -19,4 +19,10 @@ class Expense extends Model
         'expense_amount_usd',
         'expense_amount_kh'
     ];
+
+    public function getUserName()
+    {
+        $userName = COEmployee::find($this->expense_by);
+        return $userName ? $userName->name : "";
+    }
 }
