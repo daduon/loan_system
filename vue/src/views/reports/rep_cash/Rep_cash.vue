@@ -41,7 +41,13 @@ export default defineComponent({
                 { label: "Date", prop: 'cash_in_date' },
                 { label: "Description", prop: 'cash_in_desc' },
             ];
-        }
+        },
+        totalPage() {
+            return Math.ceil(this.listCashIn.length / this.countOfPage);
+        },
+        pageStart() {
+            return (this.currPage - 1) * this.countOfPage;
+        },
     },
 
     mounted() {
@@ -112,6 +118,12 @@ export default defineComponent({
         formatCurrencyKHR(amount: any): string {
             const val = (Math.floor(amount * 100000) / 100000)
             return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        },
+        setPage(data: any) {
+            if (data <= 0 || data > this.totalPage) {
+                return;
+            }
+            this.currPage = data;
         },
     },
 });

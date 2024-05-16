@@ -43,7 +43,13 @@ export default defineComponent({
                 { label: "Description", prop: 'expense_desc' },
                 { label: "Status", prop: 'expense_status' },
             ];
-        }
+        },
+        totalPage() {
+            return Math.ceil(this.expenseList.length / this.countOfPage);
+        },
+        pageStart() {
+            return (this.currPage - 1) * this.countOfPage;
+        },
     },
 
     mounted() {
@@ -115,6 +121,12 @@ export default defineComponent({
         formatCurrencyKHR(amount: any): string {
             const val = (Math.floor(amount * 100000) / 100000)
             return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        },
+        setPage(data: any) {
+            if (data <= 0 || data > this.totalPage) {
+                return;
+            }
+            this.currPage = data;
         },
     },
 });

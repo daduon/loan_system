@@ -32,8 +32,8 @@
                         </div> -->
                     </div>
                     <div class="col-6 text-end">
-                        <button type="button" class="btn btn-info mx-2" style="color: white;" @click="exportPdf"><i class="bi bi-file-pdf"></i></button>
-                        <button type="button" class="btn btn-warning" style="color: white;" @click="exportExcel"><i class="bi bi-filetype-exe"></i></button>
+                        <!-- <button type="button" class="btn btn-info mx-2" style="color: white;" @click="exportPdf"><i class="bi bi-file-pdf"></i></button> -->
+                        <button type="button" class="btn btn-warning" style="color: white;" @click="exportExcel">Excel</button>
                     </div>
                 </div>
                 <div>
@@ -51,8 +51,8 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-for="(item, index) in expenseList" :key="index">
-                                <th scope="row">{{ index + 1 }}</th>
+                            <tr v-for="(item, index) in expenseList.slice(pageStart, pageStart + countOfPage)" :key="index">
+                                <th scope="row">{{ (currPage - 1) * countOfPage + index + 1 }}</th>
                                 <!-- <td>{{ item.expense_no }}</td> -->
                                 <td>{{ item.expense_by }}</td>
                                 <td>{{ item.expense_date }}</td>
@@ -63,6 +63,36 @@
                             </tr>
                         </tbody>
                     </table>
+                    <nav
+                        v-if="expenseList.length > 10"
+                        aria-label="Page navigation example"
+                    >
+                    <ul class="pagination justify-content-center">
+                        <li
+                            class="page-item"
+                            v-bind:class="{ disabled: currPage === 1 }"
+                            @click.prevent="setPage(currPage - 1)"
+                        >
+                            <a class="page-link" href="">Prev</a>
+                        </li>
+                        <li
+                            class="page-item"
+                            v-for="(n,index) in totalPage"
+                            v-bind:class="{ active: currPage === n }"
+                            :Key="index"
+                            @click.prevent="setPage(n)"
+                        >
+                            <a class="page-link" href="">{{ n }}</a>
+                        </li>
+                        <li
+                            class="page-item"
+                            v-bind:class="{ disabled: currPage === totalPage }"
+                            @click.prevent="setPage(currPage + 1)"
+                        >
+                            <a class="page-link" href="">Next</a>
+                        </li>
+                    </ul>
+                </nav>
                 </div>
             </div>
         </div>
