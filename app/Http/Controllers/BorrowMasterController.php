@@ -984,10 +984,12 @@ class BorrowMasterController extends Controller
             $borrow_Master->save();
 
             $dateCreated = Carbon::now()->format('Ymd');
-            $currencyCode = $borrow_Master->currencyCode;
+            $currencyCode = $borrow_Master->currencycode;
 
             $amountUSD = $currencyCode == 'USD' ? $borrow_Master->loanamount : 0;
             $amountKHR = $currencyCode == 'KHR' ? $borrow_Master->loanamount : 0;
+
+            // return $currencyCode;
 
             $cashinTotal = CashTransaction::get();
 
@@ -999,7 +1001,6 @@ class BorrowMasterController extends Controller
                 $totalKHR = $cashTrnscnt->cash_total_kh;
                 $this->handleTransactionUSD($amountUSD, $totalUSD);
                 $this->handleTransactionKHR($amountKHR, $totalKHR);
-
                 $cashTrnscnt->update([
                     'cash_total_usd' => $totalUSD -= $amountUSD,
                     'cash_total_kh' => $totalKHR -= $amountKHR,

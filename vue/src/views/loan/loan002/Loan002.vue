@@ -204,19 +204,17 @@ export default defineComponent({
                 ),
             };
 
-            if(this.currency == 'USD'){
-                if(parseFloat(this.loan_amount) > this.totalCash.cash_total_usd){
-                    toastService.toastMessage('error', 'Your cash not enough (USD)');
-                    return
-                }
-            }
+            // if(this.currency == 'USD'){
+            //     if(parseFloat(this.loan_amount) > this.totalCash.cash_total_usd){
+            //         toastService.toastMessage('error', 'Your cash not enough (USD)');
+            //     }
+            // }
 
-            if(this.currency == 'KHR'){
-                if(parseFloat(this.loan_amount) > this.totalCash.cash_total_usd){
-                    toastService.toastMessage('error', 'Your cash not enough (KHR)');
-                    return
-                }
-            }
+            // if(this.currency == 'KHR'){
+            //     if(parseFloat(this.loan_amount) > this.totalCash.cash_total_usd){
+            //         toastService.toastMessage('error', 'Your cash not enough (KHR)');
+            //     }
+            // }
 
             if (this.customerId == "" || this.loan_amount == "0" || this.coEmployeeId == "") {
                 this.isInvalide = true;
@@ -230,7 +228,7 @@ export default defineComponent({
                         toastService.toastMessage("success", "Success");
                     })
                     .catch((err) => {
-                        toastService.toastMessage("error", "Error", err);
+                        toastService.toastMessage("error", "Error", err.response.data.message);
                         this.loading = false;
                     });
                 // this.loading = false;
