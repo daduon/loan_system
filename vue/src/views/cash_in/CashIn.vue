@@ -64,12 +64,19 @@ export default defineComponent({
             this.loading = true;
             await requestService.create("cashins", reqBody).then(res => {
                 this.loading = false;
-                console.log(res);
                 toastService.toastMessage('success', 'Cash In Successfully!');
+                this.clearForm();
             }).catch(err => {
                 this.loading = false;
                 toastService.toastMessage('error', 'Cash In failed', err.response.data.message);
             })
+        },
+
+        clearForm(){
+            this.cashInForm.cashInAmountKHR = 0;
+            this.cashInForm.cashInAmountUSD = 0;
+            this.cashInForm.description = '';
+            this.coemployee_selected_id = '';
         }
     }
 })

@@ -43,7 +43,7 @@ export default defineComponent({
                   this.textBreadcrumb = 'Create Holiday Date'
             }
 
-            console.log('date',new Date().toISOString().slice(0, 10),)
+            // console.log('date',new Date().toISOString().slice(0, 10),)
       },
       
       methods:{

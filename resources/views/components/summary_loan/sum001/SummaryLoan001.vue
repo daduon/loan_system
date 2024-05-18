@@ -46,7 +46,7 @@ export default defineComponent({
                 )
                     .then((res) => {
                         this.summary = res.data;
-                        console.log(this.summary);
+                        // console.log(this.summary);
                         this.loading = false;
                     })
                     .catch((error) => {
@@ -59,7 +59,7 @@ export default defineComponent({
                 )
                     .then((res) => {
                         this.summary = res.data;
-                        console.log(this.summary);
+                        // console.log(this.summary);
                         this.loading = false;
                     })
                     .catch((error) => {
@@ -72,7 +72,7 @@ export default defineComponent({
                 )
                     .then((res) => {
                         this.summary = res.data;
-                        console.log(this.summary);
+                        // console.log(this.summary);
                         this.loading = false;
                     })
                     .catch((error) => {

@@ -155,7 +155,7 @@ export default defineComponent({
                             console.log(currencyCode);
 
                             await requestService.create("cashins", reqBody).then(res => {
-                                console.log(res);
+                                // console.log(res);
                                 // toastService.toastMessage('success', 'Cash In Successfully!');
                             }).catch(err => {
                                 console.log(err);

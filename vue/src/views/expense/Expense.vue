@@ -93,6 +93,7 @@ export default defineComponent({
             await requestService.create('/expenses', body).then(() => {
                 this.isLoading = false;
                 toastService.toastMessage('success', 'Created Success');
+                this.clearForm();
             }).catch((error: any) => {
                 this.isLoading = false;
                 toastService.toastMessage('error', 'Create failed', error.response.data.message);
@@ -100,8 +101,11 @@ export default defineComponent({
 
         },
 
-        handleBack() {
-            this.$router.push('/')
+        clearForm() {
+            this.expense.expense_amount_kh = 0;
+            this.expense.expense_amount_usd = 0;
+            this.expense.expense_desc = '';
+            this.expense.expense_by = '';
         }
     }
 });

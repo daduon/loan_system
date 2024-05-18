@@ -13,18 +13,6 @@
         <div class="card">
             <div class="card-body p-5">
                 <div class="row mb-4">
-                    <div class="col-lg-6">
-                        <label class="form-label">Amount USD</label>
-                        <input type="number" min="0" v-model="cashInForm.cashInAmountUSD" class="form-control"
-                            placeholder="input amount">
-                    </div>
-                    <div class="col-lg-6">
-                        <label class="form-label">Amount KHR</label>
-                        <input type="number" min="0" v-model="cashInForm.cashInAmountKHR" class="form-control"
-                            placeholder="input amount">
-                    </div>
-                </div>
-                <div class="row mb-4">
                     <div class="col-lg-4">
                         <label class="form-label">Cash In User</label>
                         <select class="form-select" v-model="coemployee_selected_id" @change="GetCOEmployee()">
@@ -36,6 +24,18 @@
                             </option>
                         </select>
                         <div v-if="isInvalide" class="invalid"> Cash In User is required</div>
+                    </div>
+                </div>
+                <div class="row mb-4">
+                    <div class="col-lg-6">
+                        <label class="form-label">Amount USD</label>
+                        <input type="number" min="0" v-model="cashInForm.cashInAmountUSD" class="form-control"
+                            placeholder="input amount">
+                    </div>
+                    <div class="col-lg-6">
+                        <label class="form-label">Amount KHR</label>
+                        <input type="number" min="0" v-model="cashInForm.cashInAmountKHR" class="form-control"
+                            placeholder="input amount">
                     </div>
                 </div>
                 <div class="row mb-2">
