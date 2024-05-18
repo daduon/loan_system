@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Borrow_Master;
 use App\Models\Borrow_Schedule;
 use App\Models\CashTransaction;
+use App\Models\Expense;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Routing\Controller;
@@ -983,31 +984,7 @@ class BorrowMasterController extends Controller
 
             $borrow_Master->save();
 
-            $dateCreated = Carbon::now()->format('Ymd');
-            $currencyCode = $borrow_Master->currencycode;
-
-            $amountUSD = $currencyCode == 'USD' ? $borrow_Master->loanamount : 0;
-            $amountKHR = $currencyCode == 'KHR' ? $borrow_Master->loanamount : 0;
-
-            // return $currencyCode;
-
-            $cashinTotal = CashTransaction::get();
-
-            if ($cashinTotal->isEmpty()) {
-                throw new Exception('Please insert some cash to make your transaction!', 500);
-            } else {
-                $cashTrnscnt = CashTransaction::find($cashinTotal->get(0)->id);
-                $totalUSD = $cashTrnscnt->cash_total_usd;
-                $totalKHR = $cashTrnscnt->cash_total_kh;
-                $this->handleTransactionUSD($amountUSD, $totalUSD);
-                $this->handleTransactionKHR($amountKHR, $totalKHR);
-                $cashTrnscnt->update([
-                    'cash_total_usd' => $totalUSD -= $amountUSD,
-                    'cash_total_kh' => $totalKHR -= $amountKHR,
-                    'date' => $dateCreated,
-                    'cash_in_desc' => CashTransactionType::LOAN->value,
-                ]);
-            }
+            $this->handleExpenseTransaction($borrow_Master);
 
             foreach ($results as $key) {
                 $insertSchedule = new Borrow_Schedule;
@@ -1387,6 +1364,43 @@ class BorrowMasterController extends Controller
         ");
 
         dd($results);
+    }
+
+    private function handleExpenseTransaction(Borrow_Master $borrow_Master)
+    {
+        $dateCreated = Carbon::now()->format('Ymd');
+        $expenseNo = Carbon::now()->format('YmdHms');
+        $currencyCode = $borrow_Master->currencycode;
+
+        $amountUSD = $currencyCode == 'USD' ? $borrow_Master->loanamount : 0;
+        $amountKHR = $currencyCode == 'KHR' ? $borrow_Master->loanamount : 0;
+
+        $expense = new Expense();
+        $expense->expense_no = $expenseNo;
+        $expense->expense_desc = CashTransactionType::LOAN->value;
+        $expense->expense_date = $dateCreated;
+        $expense->expense_by = $borrow_Master->coemployee_id;
+        $expense->expense_amount_usd = $amountUSD;
+        $expense->expense_amount_kh = $amountKHR;
+        $expense->save();
+
+        $cashinTotal = CashTransaction::get();
+
+        if ($cashinTotal->isEmpty()) {
+            throw new Exception('Please insert some cash to make your transaction!', 500);
+        } else {
+            $cashTrnscnt = CashTransaction::find($cashinTotal->get(0)->id);
+            $totalUSD = $cashTrnscnt->cash_total_usd;
+            $totalKHR = $cashTrnscnt->cash_total_kh;
+            $this->handleTransactionUSD($amountUSD, $totalUSD);
+            $this->handleTransactionKHR($amountKHR, $totalKHR);
+            $cashTrnscnt->update([
+                'cash_total_usd' => $totalUSD -= $amountUSD,
+                'cash_total_kh' => $totalKHR -= $amountKHR,
+                'date' => $dateCreated,
+                'cash_in_desc' => $expense->expense_desc,
+            ]);
+        }
     }
 
     private function handleTransactionUSD($amountUSD, $totalUSD)

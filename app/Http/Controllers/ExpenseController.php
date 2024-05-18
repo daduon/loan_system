@@ -46,7 +46,7 @@ class ExpenseController extends Controller
 
             $expense = new Expense();
             $expense->expense_no = $expenseNo;
-            $expense->expense_desc = $request->expense_desc ?? CashTransactionType::OTHER->value;
+            $expense->expense_desc = $request->expense_desc ?? CashTransactionType::LOAN->value;
             $expense->expense_date = $dateCreated;
             $expense->expense_by = $request->expense_by;
             $expense->expense_amount_usd = $request->expense_amount_usd;

@@ -228,7 +228,7 @@ export default defineComponent({
                         toastService.toastMessage("success", "Success");
                     })
                     .catch((err) => {
-                        toastService.toastMessage("error", "Error", err.response.data.message);
+                        toastService.toastMessage("error", err.response.data.message);
                         this.loading = false;
                     });
                 // this.loading = false;
