@@ -150,7 +150,7 @@ export default defineComponent({
                             const reqBody = {
                                 cash_in_user_id: res.data.borrowScheduleData.coemployeeid,
                                 income_cash_in_usd: currencyCode == 'USD' ? amount : 0,
-                                income_cash_in_kh: currencyCode == 'KHR' ? amount : 0,
+                                income_cash_in_kh: currencyCode == 'KHR' ? Math.trunc(amount) : 0,
                             }
                             console.log(currencyCode);
 

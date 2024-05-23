@@ -19,7 +19,7 @@ class ExpenseController extends Controller
     public function index()
     {
         try {
-            $expenses = Expense::orderBy('expense_date')->get();
+            $expenses = Expense::orderBy('updated_at', 'desc')->get();
             $expenses->transform(function ($expense) {
                 $expense->expense_by = $expense->getUserName();
                 return $expense;

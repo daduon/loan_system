@@ -20,7 +20,7 @@ class CashInController extends Controller
     public function index()
     {
         try {
-            $cashIns = CashIn::orderBy('cash_in_date', 'desc')->get();
+            $cashIns = CashIn::orderBy('updated_at', 'desc')->get();
             $cashIns->transform(function ($cashIn) {
                 $cashIn->cash_in_user_name = $cashIn->getUserName();
                 return $cashIn;
@@ -30,7 +30,7 @@ class CashInController extends Controller
             ]);
         } catch (Exception $e) {
             return response([
-                'message' => $e->getMessage(),
+                'message' => 'Something went wrong!',
             ], 500);
         }
     }

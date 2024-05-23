@@ -17,7 +17,8 @@ class Expense extends Model
         'expense_by',
         'expense_status',
         'expense_amount_usd',
-        'expense_amount_kh'
+        'expense_amount_kh',
+        'updated_at'
     ];
 
     public function getUserName()

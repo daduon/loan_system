@@ -18,7 +18,8 @@ class CashIn extends Model
         'income_cash_in_kh',
         'cash_in_date',
         'cash_in_status',
-        'cash_in_desc'
+        'cash_in_desc',
+        'updated_at'
     ];
 
     public function getUserName()
