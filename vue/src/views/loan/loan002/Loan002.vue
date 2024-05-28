@@ -90,6 +90,9 @@ export default defineComponent({
         this.GetAllCustomer();
         this.GetAllCOEmployee();
         this.getTotalCash();
+        if(this.inputNumber){
+            this.generateDate(this.inputNumber, this.nDate, this.borrowingPrinciplePaymentTypeCode);
+        }
     },
     methods: {
         async getTotalCash(){
