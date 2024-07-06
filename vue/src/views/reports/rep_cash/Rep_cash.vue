@@ -34,8 +34,8 @@ export default defineComponent({
         headers() {
             return [
                 { label: "Cash In By", prop: 'cash_in_user_name' },
-                { label: "Cash In USD", prop: 'cash_in_amt_usd' },
-                { label: "Cash In KHR", prop: 'cash_in_amt_khr' },
+                { label: "Amount (USD)", prop: 'cash_in_amt_usd' },
+                { label: "Amount (KHR)", prop: 'cash_in_amt_khr' },
                 // { label: "Income USD", prop: 'income_cash_in_usd' },
                 // { label: "Income KHR", prop: 'income_cash_in_kh' },
                 { label: "Date", prop: 'cash_in_date' },

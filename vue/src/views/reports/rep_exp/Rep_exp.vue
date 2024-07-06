@@ -37,9 +37,9 @@ export default defineComponent({
             return [
                 // { label: "Title", prop: 'expense_no' },
                 { label: "Expense By", prop: 'expense_by' },
-                { label: "Expense Date", prop: 'expense_date' },
                 { label: "Amount (USD)", prop: 'expense_amount_usd' },
-                { label: "Amount (KH)", prop: 'expense_amount_kh' },
+                { label: "Amount (KHR)", prop: 'expense_amount_kh' },
+                { label: "Expense Date", prop: 'expense_date' },
                 { label: "Description", prop: 'expense_desc' },
                 { label: "Status", prop: 'expense_status' },
             ];
@@ -72,7 +72,7 @@ export default defineComponent({
                             id: item.id,
                             expense_no: item.expense_no,
                             expense_by: item.expense_by,
-                            expense_date: item.expense_date,
+                            expense_date: this.dateFormat(item.expense_date),
                             expense_amount_usd: this.formatCurrency(item.expense_amount_usd),
                             expense_amount_kh: this.formatCurrencyKHR(item.expense_amount_kh),
                             expense_desc: item.expense_desc,
